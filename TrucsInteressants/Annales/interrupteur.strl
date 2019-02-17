@@ -1,0 +1,14 @@
+module interrupteur :
+
+input  CLIC;
+output S : integer;
+
+await immediate CLIC;
+emit S(1);
+trap FIN in
+   await 3 tick do exit FIN end await
+||
+   await CLIC do emit S(2); exit FIN end await
+end trap
+
+end module

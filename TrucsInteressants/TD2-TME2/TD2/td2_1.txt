@@ -1,0 +1,57 @@
+Les ingenieurs des chemins de fer disposent de deux types de dispositif pour
+controller le croisement des trains:
+      - des feux qui peuvent etre soit VERT, soit ROUGE
+      - des detecteurs qui annoncent la presence (ALLUME) ou non
+        (ETEINT) d'un train sur un troncon
+
+a. Indiquez l'ensemble de dispositifs necessaires pour le croisement
+   simple decrit ci-dessus. On associera a chaque dispositif un
+   nom de variable et les valeurs que peut prendre la variable.
+
+Reponse: - variable Feu1 etats VERT ou ROUGE
+         - variable Feu2 etats VERT ou ROUGE
+         - variable Entree1 etats ALLUME ou ETEINT
+         - variable Sortie1 etats ALLUME ou ETEINT
+         - variable Entree2 etats ALLUME ou ETEINT
+         - variable Sortie2 etats ALLUME ou ETEINT
+
+******************************************************************************
+
+b. Quel est le nombre d'etats possibles du systeme global ?
+
+Reponse : 2 puissance 6 = 64
+
+Une propriete de surete d'un systeme doit etre verifiee durant toute
+l'execution du systeme. Un probleme de surete est donc une condition qui doit
+etre fausse durant toute l'execution du systeme. Deux types de probleme de
+surete peuvent apparaitre : les problemes de coherence qui correspondent a des
+etats incoherents (ici dangereux ) du systeme et les problemes d'interblocage.
+
+******************************************************************************
+
+c. En utilisant les variables introduites precedemment, exprimez (au moins)
+   deux problemes de coherence et un probleme d'interblocage pour le
+   croisement.
+
+Reponse:
+
+ - Pbm de coherence 1 (Danger) :
+      Feu1/VERT et Feu2/VERT
+ - Pbm de coherence 2 (Collision) :
+      Entree1/ALLUME et Entree2/ALLUME et Danger
+ - Pbm de coherence 3 (Defaut detecteur):
+      Entree1=Sortie1  ou  Entree2=Sortie2
+ - Pbm d'interblocage :
+      Feu1/ROUGE et Feu2/ROUGE et Entree1=ALLUME et Entree2=ALLUME
+
+Une propriete de vivacite d'un systeme doit inevitablement etre verifiee a un
+certain moment de l'execution du systeme.
+
+******************************************************************************
+
+d. Identifiez une probleme de vivacite dans le croisement de train
+
+Reponse :  Lorsque des trains sont toujours presents (traffic maximum), les
+	   trains ne passent que sur une seule ligne (on voit ici qu'on ne peut
+	   exprimer la propriete de facon simple, c'est typique des problemes
+	   de vivacite).

@@ -1,0 +1,6 @@
+A compiler avec :
+
+gcc -m32 -o ft_await_generate_avec_fin ft_await_generate_avec_fin.c \
+       traceinstantsf.c -I $CHEMIN/ft_v1.1/include -L $CHEMIN/ft_v1.1/lib \
+       -lfthread -lpthread
+

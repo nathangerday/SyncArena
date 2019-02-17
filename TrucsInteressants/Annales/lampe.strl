@@ -1,0 +1,11 @@
+module lampe :
+
+constant numero, n : integer;
+output LAMPE : combine integer with +;
+
+repeat n times
+   emit LAMPE(numero);
+   pause
+end repeat;
+
+end module

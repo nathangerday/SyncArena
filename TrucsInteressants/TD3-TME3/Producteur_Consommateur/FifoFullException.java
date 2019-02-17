@@ -1,0 +1,2 @@
+class FifoFullException extends Exception {
+}
