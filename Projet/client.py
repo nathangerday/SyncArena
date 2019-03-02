@@ -51,8 +51,8 @@ class Player:
         newy = (self.pos[1] + 1.0 + self.vector[1]) % 2 - 1
 
         self.pos = (newx, newy)
-        self.current_sprite = pygame.transform.rotate(self.original_sprite, math.degrees(-self.direction))
-        print(self.pos)
+        self.current_sprite = pygame.transform.rotate(self.original_sprite, math.degrees(self.direction))
+        # print(self.pos)
 
 
 class Arena:
@@ -70,7 +70,7 @@ class Arena:
         """
         for p in self.players:
             x = p.pos[0] * self.h + self.h
-            y = p.pos[1] * self.l + self.l
+            y = (-p.pos[1]) * self.l + self.l
             window.blit(p.current_sprite, (x, y))
             
 
@@ -113,9 +113,9 @@ def start():
 
         keys = pygame.key.get_pressed()
         if(keys[pygame.K_q] or keys[pygame.K_LEFT]):
-            main_player.clock()
-        elif(keys[pygame.K_d] or keys[pygame.K_RIGHT]):
             main_player.anticlock()
+        elif(keys[pygame.K_d] or keys[pygame.K_RIGHT]):
+            main_player.clock()
 
         main_player.update()
 
