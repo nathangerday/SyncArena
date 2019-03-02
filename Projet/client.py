@@ -52,6 +52,7 @@ class Player:
 
         self.pos = (newx, newy)
         self.current_sprite = pygame.transform.rotate(self.original_sprite, math.degrees(-self.direction))
+        print(self.pos)
 
 
 class Arena:
@@ -97,7 +98,7 @@ def start():
 
     run = True
     while(run):
-        now = current_milli_time() # TODO Delete
+        # now = current_milli_time() # TODO Delete
 
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
@@ -106,6 +107,8 @@ def start():
             if(event.type == pygame.KEYDOWN):
                 if(event.key == pygame.K_SPACE):
                     main_player.thrust()
+                if(event.key == pygame.K_ESCAPE):
+                    run = False
 
 
         keys = pygame.key.get_pressed()
@@ -122,7 +125,7 @@ def start():
         pygame.display.update() # Met a jour la fenetre
 
         clock.tick(REFRESH_TICKRATE) # Limite le nombre de mise a jour par seconde
-        print(current_milli_time() - now, " ms per frame") #TODO Delete
+        # print(current_milli_time() - now, " ms per frame") #TODO Delete
     pygame.quit()
 
 start()
