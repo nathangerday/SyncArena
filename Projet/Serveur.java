@@ -19,7 +19,12 @@ class Serveur {
  
             fromClient = in.readLine();
             System.out.println("received: " + fromClient);
+            Thread.sleep(2000);
+            System.out.println("Sending data");
             out.println(3.32423);
+            Thread.sleep(5000);
+            out.println("Truc123");
+            out.println("Byebye");
  
         }
         System.exit(0);

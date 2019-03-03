@@ -131,7 +131,7 @@ def start():
 start()
 
 
-########### EXEMPLE SOCKET ############
+########### EXEMPLE SOCKET ASYNCHRONE ############
 
 # import socket
 
@@ -142,6 +142,13 @@ start()
 # sock.connect((HOST, PORT))
 
 # sock.sendall(b"Hello\n")
-# sock.send
-# data = sock.recv(1024)
-# print(float(data))
+
+# while(True):
+#     data = None
+#     try:
+#         data = sock.recv(1024, socket.MSG_DONTWAIT) # Will send exception if nothing to receive
+#         print(data.decode('utf-8'))
+#     except Exception:
+#         print("Dors 5 secondes")
+#         time.sleep(5)
+
