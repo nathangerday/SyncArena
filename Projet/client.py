@@ -19,13 +19,14 @@ class Player:
     """
     
     def __init__(self, path_to_sprite):
+        self.sprite_size = 64
         self.pos = (0.0, 0.0)
         self.direction = 0
         self.vector = (0.0, 0.0)
         self.turnit = 0.03
         self.thrustit = 0.002
         self.original_sprite = pygame.image.load(path_to_sprite)
-        self.original_sprite = pygame.transform.scale(self.original_sprite, (64, 64)) # Original sprite which should never change
+        self.original_sprite = pygame.transform.scale(self.original_sprite, (self.sprite_size, self.sprite_size)) # Original sprite which should never change
         self.current_sprite = self.original_sprite # Sprite with correct transform
 
     def thrust(self):
@@ -64,15 +65,48 @@ class Arena:
         self.h = window_height / 2
         self.l = window_width / 2
         self.players = []
+        self.goal = None
 
     def draw(self, window):
         """Dessine, sur la fenetre donnee, toutes les entites sur lesquelles l'arene a une reference
         """
+        #TODO Define draw in each class, then pass the coordinates in the "real" window to this function, so that they draw themselves
+        
+        #Draw players
         for p in self.players:
-            x = p.pos[0] * self.h + self.h
-            y = (-p.pos[1]) * self.l + self.l
+            x = p.pos[0] * self.h + self.h - p.sprite_size/2
+            y = (-p.pos[1]) * self.l + self.l - p.sprite_size/2
             window.blit(p.current_sprite, (x, y))
+        
+        #Draw Goal
+        if(self.goal != None):
+            x = int(self.goal.x * self.h + self.h)
+            y = int((-self.goal.y) * self.l + self.l)
+
+            # UGLY Changing color when the "real" player is passing through
+            if(self.goal.isCollectable(self.players[0].pos[0], self.players[0].pos[1])):
+                color = (255, 0, 0)
+            else:
+                color = (255, 255, 0)
+            pygame.draw.circle(window, color, (x, y), int(self.goal.obj_radius * self.l))
             
+class Goal:
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.obj_radius = 0.05
+        self.collected = False
+
+    def isCollectable(self, otherx, othery):
+        distance = math.sqrt(math.pow(otherx - self.x, 2) + math.pow(othery - self.y, 2))
+        # print(distance)
+        return (not self.collected) and (distance < self.obj_radius*2)
+
+    def collect(self):
+        self.collected = True
+
+
 
 
 def createPygameWindow(width, height, title):
@@ -93,7 +127,7 @@ def start():
     # Creation des entites
     main_player = Player("evilFighter.png")
     arena.players.append(main_player)
-    
+    arena.goal = Goal(0.5, 0.8)
     
 
     run = True
@@ -118,7 +152,8 @@ def start():
             main_player.clock()
 
         main_player.update()
-
+        print(arena.goal.isCollectable(main_player.pos[0], main_player.pos[1]))
+        # arena.goal.isCollectable(main_player.pos[0], main_player.pos[1])
         #TODO Optimisation : Effacer uniquement ce qui change
         window.fill((0, 0, 0)) # Efface tout ce qui est sur la fenetre
         arena.draw(window) # Dessine toutes les entites
