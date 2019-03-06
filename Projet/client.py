@@ -19,7 +19,7 @@ class Player:
     """
     
     def __init__(self, path_to_sprite):
-        self.sprite_size = 64
+        self.sprite_size = 32
         self.pos = (0.0, 0.0)
         self.direction = 0
         self.vector = (0.0, 0.0)
@@ -101,7 +101,7 @@ class Goal:
     def isCollectable(self, otherx, othery):
         distance = math.sqrt(math.pow(otherx - self.x, 2) + math.pow(othery - self.y, 2))
         # print(distance)
-        return (not self.collected) and (distance < self.obj_radius*2)
+        return (not self.collected) and (distance < self.obj_radius)
 
     def collect(self):
         self.collected = True
