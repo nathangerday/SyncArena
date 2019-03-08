@@ -55,6 +55,9 @@ class Player:
         self.current_sprite = pygame.transform.rotate(self.original_sprite, math.degrees(self.direction))
         # print(self.pos)
 
+    def draw(self, window, xwindow, ywindow):
+        window.blit(self.current_sprite, (xwindow, ywindow))
+
 
 class Arena:
     """ Arene s'occupe de la gestion des toutes les entites du jeux (joueurs, objects, etc).
@@ -76,19 +79,15 @@ class Arena:
         for p in self.players:
             x = p.pos[0] * self.h + self.h - p.sprite_size/2
             y = (-p.pos[1]) * self.l + self.l - p.sprite_size/2
-            window.blit(p.current_sprite, (x, y))
+            p.draw(window, x, y)
         
         #Draw Goal
         if(self.goal != None):
             x = int(self.goal.x * self.h + self.h)
             y = int((-self.goal.y) * self.l + self.l)
 
-            # UGLY Changing color when the "real" player is passing through
-            if(self.goal.isCollectable(self.players[0].pos[0], self.players[0].pos[1])):
-                color = (255, 0, 0)
-            else:
-                color = (255, 255, 0)
-            pygame.draw.circle(window, color, (x, y), int(self.goal.obj_radius * self.l))
+            # UGLY (Don't reelly wanna give the player coordinates) Changing color when the "real" player is passing through
+            self.goal.draw(window, x, y, self.players[0].pos[0], self.players[0].pos[1])
             
 class Goal:
 
@@ -105,6 +104,15 @@ class Goal:
 
     def collect(self):
         self.collected = True
+
+    def draw(self, window, xwindow, ywindow, xplayer, yplayer):
+        if(self.isCollectable(xplayer, yplayer)):
+            color = (255, 0, 0)
+        else:
+            color = (255, 255, 0)
+
+
+        pygame.draw.circle(window, color, (xwindow, ywindow), int(self.obj_radius * pygame.display.get_surface().get_width()/2))
 
 
 
