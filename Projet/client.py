@@ -215,8 +215,8 @@ while(True):
         pass
     time.sleep(0.1)
     i += 1
-    if(i==100 and sys.argv[1] == "kyrnale"):
-        sock.sendall(("EXIT/"+sys.argv[1]+"/\n").encode())
+    # if(i==100 and sys.argv[1] == "kyrnale"):
+    #     sock.sendall(("EXIT/"+sys.argv[1]+"/\n").encode())
 
 
 sock.close()

@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class Session{
+public class Session {
     private Map<String, Player> players = new HashMap<>();
     private Map<String, Connexion> connexions = new HashMap<>();
     private Objectif objectif = null;
@@ -13,10 +13,9 @@ public class Session{
     private String phase = "inactive";
     private int delayBeforeStart = 10;
 
-
-    public boolean addUser(String name, Connexion c){
-        synchronized(userLock){
-            if(!players.containsKey(name)){
+    public boolean addUser(String name, Connexion c) {
+        synchronized (userLock) {
+            if (!players.containsKey(name)) {
                 players.put(name, new Player(name));
                 connexions.put(name, c);
                 return true;
@@ -25,10 +24,10 @@ public class Session{
         }
     }
 
-    public boolean connect(String name, Connexion c){
-        if(addUser(name, c)){
-            synchronized(this.phase){
-                if(this.phase.equals("inactive")){
+    public boolean connect(String name, Connexion c) {
+        if (addUser(name, c)) {
+            synchronized (this.phase) {
+                if (this.phase.equals("inactive")) {
                     this.phase = "waiting";
                     scheduleStart();
                 }
@@ -41,10 +40,10 @@ public class Session{
         return false;
     }
 
-    private void scheduleStart(){
+    private void scheduleStart() {
         ScheduledExecutorService sch = Executors.newSingleThreadScheduledExecutor();
-                    
-        Runnable task = new Runnable(){
+
+        Runnable task = new Runnable() {
             public void run() {
                 start();
             }
@@ -53,40 +52,65 @@ public class Session{
         sch.schedule(task, delayBeforeStart, TimeUnit.SECONDS);
     }
 
-
-    public void start(){
-        synchronized(this.phase){
-            if(this.phase.equals("waiting")){
-                //Start the game
+    public void start() {
+        synchronized (this.phase) {
+            if (this.phase.equals("waiting")) {
+                // Start the game
                 this.phase = "ingame";
                 this.objectif = new Objectif();
-            }else{
+            } else {
                 return;
             }
         }
-        synchronized(userLock){
+        synchronized (userLock) {
             String coords = "";
             String coord = "";
             int i = players.size();
-            DecimalFormat  sixdecimals = new DecimalFormat("#.######");
+            DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
-            for(Player p : players.values()){
+            for (Player p : players.values()) {
+                p.reset();
                 i--;
-                Double xformat = Double.valueOf(sixdecimals.format(p.getX())); 
-                Double yformat = Double.valueOf(sixdecimals.format(p.getY())); 
-                coords += p.getUsername() + ":X" + xformat +"Y"+ yformat;
-                if(i>0){
+                Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
+                Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
+                coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
+                if (i > 0) {
                     coords += "|";
                 }
             }
-            coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
-            for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
+            coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
+            for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
                 entry.getValue().sendStartSession(coords, coord);
             }
         }
     }
 
-    
+    public void endSession(){
+        synchronized(userLock){
+            synchronized(phase){
+                if(this.phase.equals("ingame")){
+                    if(this.players.size() == 0){
+                        this.phase = "inactive";
+                    }else{
+                        String scores = "";
+                        int i = players.size();
+                        for(Player p : players.values()){
+                            i--;
+                            scores += p.getUsername() + ":" + p.getScore();
+                            if(i>0){
+                                scores += "|";
+                            }
+                        }
+                        for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
+                            entry.getValue().sendEndSession(scores);
+                        }
+                        this.phase = "waiting";
+                        scheduleStart();
+                    }
+                }
+            }
+        }
+    }
 
 	public void disconnect(String username) {
         synchronized(userLock){
@@ -94,7 +118,7 @@ public class Session{
             if(this.players.size() == 0){
                 synchronized(phase){
                     this.phase = "inactive";
-                    //TODO End Sessions if ingame
+                    endSession();
                 }
             }else{
                 for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
@@ -105,7 +129,6 @@ public class Session{
                 }
             }
         }
-
     }
     
 
@@ -122,10 +145,6 @@ public class Session{
                     for(Player p : players.values()){
                         i--;
                         scores += p.getUsername() + ":" + p.getScore();
-        
-                        // Double xformat = Double.valueOf(sixdecimals.format(p.getX())); 
-                        // Double yformat = Double.valueOf(sixdecimals.format(p.getY())); 
-                        // coords += p.getUsername() + ":X" + xformat +"Y"+ yformat;
                         if(i>0){
                             scores += "|";
                         }

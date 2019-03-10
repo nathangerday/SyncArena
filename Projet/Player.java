@@ -4,9 +4,9 @@ public class Player{
     private String username;
     private double x,y;
     private int score;
+    private Random r = new Random();
 
     public Player(String username){
-        Random r = new Random();
         this.username = username;
         this.x = (r.nextInt(200)/100.0) - 1;
         this.y = (r.nextInt(200)/100.0) - 1;
@@ -36,6 +36,12 @@ public class Player{
     public void moveTo(int x, int y){
         this.x = x;
         this.y = y;
+    }
+
+    public void reset(){
+        this.x = (r.nextInt(200)/100.0) - 1;
+        this.y = (r.nextInt(200)/100.0) - 1;
+        this.score = 0;
     }
 
 }
