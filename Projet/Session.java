@@ -15,6 +15,7 @@ public class Session {
     private Objectif objectif = null;
     private String phase = "inactive";
     private int delayBeforeStart = 10;
+    private int server_tickrate = 1;
 
     public boolean addUser(String name, Connexion c) {
         synchronized (userLock) {
@@ -29,7 +30,7 @@ public class Session {
 
     public boolean connect(String name, Connexion c) {
         if (addUser(name, c)) {
-            synchronized (this.phase) {
+            synchronized (phaseLock) {
                 if (this.phase.equals("inactive")) {
                     this.phase = "waiting";
                     scheduleStart();
@@ -55,12 +56,33 @@ public class Session {
         sch.schedule(task, delayBeforeStart, TimeUnit.SECONDS);
     }
 
+    private void autoTick() {
+        Runnable task = new Runnable() {
+            public void run() {
+                while (true) {
+                    synchronized (phaseLock) {
+                        if (!phase.equals("ingame")) {
+                            return;
+                        }
+                    }
+                    tick();
+                    try {
+                        Thread.sleep(1000 / server_tickrate);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
+        new Thread(task).start();
+    }
+
     public void start() {
-        synchronized (this.phase) {
+        synchronized (phaseLock) {
             if (this.phase.equals("waiting")) {
                 // Start the game
                 this.phase = "ingame";
-                synchronized(this.objectif){
+                synchronized(objectifLock){
                     this.objectif = new Objectif();
                 }
             } else {
@@ -83,13 +105,14 @@ public class Session {
                     coords += "|";
                 }
             }
-            synchronized(this.objectif){
+            synchronized(objectifLock){
                 coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
             }
             for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
                 entry.getValue().sendStartSession(coords, coord);
             }
         }
+        autoTick(); // Start a thread that will call tick once every server_tickrate
     }
 
     public void tick(){
@@ -99,7 +122,6 @@ public class Session {
             DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
             for (Player p : players.values()) {
-                p.reset();
                 i--;
                 Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
                 Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
@@ -119,7 +141,7 @@ public class Session {
     public void changeObjectif(){
         String scores = "";
         String coord = "";
-        synchronized(this.objectif){
+        synchronized(objectifLock){
             this.objectif = new Objectif();
             coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
         }
@@ -142,7 +164,7 @@ public class Session {
 
     public void endSession(){
         synchronized(userLock){
-            synchronized(phase){
+            synchronized(phaseLock){
                 if(this.phase.equals("ingame")){
                     if(this.players.size() == 0){
                         this.phase = "inactive";
@@ -180,7 +202,7 @@ public class Session {
             this.players.remove(username);
             this.connexions.remove(username);
             if(this.players.size() == 0){
-                synchronized(phase){
+                synchronized(phaseLock){
                     this.phase = "inactive";
                     endSession();
                 }
@@ -200,7 +222,7 @@ public class Session {
         String scores = "";
         String coord = "";
         synchronized(userLock){
-            synchronized(phase){
+            synchronized(phaseLock){
                 if(!this.phase.equals("ingame")){
                     scores = "";
                     coord = "";
@@ -213,7 +235,7 @@ public class Session {
                             scores += "|";
                         }
                     }
-                    synchronized(this.objectif){
+                    synchronized(objectifLock){
                         coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
                     }
                 }

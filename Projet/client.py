@@ -205,18 +205,21 @@ sock.connect((HOST, PORT))
 #         # print("Dors 5 secondes")
 #         # time.sleep(5)
 
-sock.sendall(b"NEWPOS/X0.23231Y-0.5789\n")
-time.sleep(2)
+# sock.sendall(b"NEWPOS/X0.23231Y-0.5789\n")
+# time.sleep(2)
 
-# sock.sendall(("CONNECT/"+sys.argv[1]+"/\n").encode())
-# i=0
-# while(True):
-#     try:
-#         data = sock.recv(1024, socket.MSG_DONTWAIT)
-#         print(data.decode())
-#     except Exception:
-#         pass
-#     time.sleep(0.1)
+sock.sendall(("CONNECT/"+sys.argv[1]+"/\n").encode())
+i=0
+while(True):
+    try:
+        data = sock.recv(1024, socket.MSG_DONTWAIT)
+        print(data.decode())
+    except KeyboardInterrupt:
+        sock.close()
+        exit(0)
+    except Exception:
+        pass
+    time.sleep(0.1)
 #     i += 1
     # if(i==100 and sys.argv[1] == "kyrnale"):
     #     sock.sendall(("EXIT/"+sys.argv[1]+"/\n").encode())

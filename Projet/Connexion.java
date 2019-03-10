@@ -28,7 +28,12 @@ public class Connexion extends Thread {
     public void run(){
         try {
             while (true) {
-                String[] commands = in.readLine().split("/");
+                String[] commands;
+                try{
+                    commands = in.readLine().split("/");
+                }catch(NullPointerException e){
+                    return;
+                }
                 // System.out.println("Received : "+commands);
                 switch(commands[0]){
                     case "CONNECT":
@@ -43,10 +48,12 @@ public class Connexion extends Thread {
                         }
                         break;
                     case "NEWPOS":
-                        String[] vals = commands[1].split("X|Y");
-                        double x = Double.valueOf(vals[1]);
-                        double y = Double.valueOf(vals[2]);
-                        session.changePos(this.username, x, y);
+                        if(this.isConnectedToSession){
+                            String[] vals = commands[1].split("X|Y");
+                            double x = Double.valueOf(vals[1]);
+                            double y = Double.valueOf(vals[2]);
+                            session.changePos(this.username, x, y);
+                        }
                 }       
 
 
