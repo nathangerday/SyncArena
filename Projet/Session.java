@@ -8,8 +8,11 @@ import java.util.concurrent.TimeUnit;
 public class Session {
     private Map<String, Player> players = new HashMap<>();
     private Map<String, Connexion> connexions = new HashMap<>();
+    private final Object userLock = new Object();
+    private final Object phaseLock = new Object();
+    private final Object objectifLock = new Object();
+
     private Objectif objectif = null;
-    private Object userLock = new Object();
     private String phase = "inactive";
     private int delayBeforeStart = 10;
 
@@ -57,7 +60,9 @@ public class Session {
             if (this.phase.equals("waiting")) {
                 // Start the game
                 this.phase = "ingame";
-                this.objectif = new Objectif();
+                synchronized(this.objectif){
+                    this.objectif = new Objectif();
+                }
             } else {
                 return;
             }
@@ -78,12 +83,62 @@ public class Session {
                     coords += "|";
                 }
             }
-            coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
+            synchronized(this.objectif){
+                coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
+            }
             for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
                 entry.getValue().sendStartSession(coords, coord);
             }
         }
     }
+
+    public void tick(){
+        synchronized(userLock){
+            String coords = "";
+            int i = players.size();
+            DecimalFormat sixdecimals = new DecimalFormat("#.######");
+
+            for (Player p : players.values()) {
+                p.reset();
+                i--;
+                Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
+                Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
+                coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
+
+                if (i > 0) {
+                    coords += "|";
+                }
+            }
+            for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
+                entry.getValue().sendTick(coords);
+            }
+        }
+    }
+
+
+    public void changeObjectif(){
+        String scores = "";
+        String coord = "";
+        synchronized(this.objectif){
+            this.objectif = new Objectif();
+            coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+        }
+
+        synchronized(userLock){
+            int i = players.size();
+            for(Player p : players.values()){
+                i--;
+                scores += p.getUsername() + ":" + p.getScore();
+                if(i>0){
+                    scores += "|";
+                }
+            }
+            for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
+                entry.getValue().sendNewObjectif(coord, scores);
+            }
+        }
+        
+    }   
 
     public void endSession(){
         synchronized(userLock){
@@ -112,9 +167,18 @@ public class Session {
         }
     }
 
+    public void changePos(String user, double x, double y){
+        synchronized(userLock){
+            this.players.get(user).moveTo(x, y);
+        }
+    }
+
+
+
 	public void disconnect(String username) {
         synchronized(userLock){
             this.players.remove(username);
+            this.connexions.remove(username);
             if(this.players.size() == 0){
                 synchronized(phase){
                     this.phase = "inactive";
@@ -149,12 +213,12 @@ public class Session {
                             scores += "|";
                         }
                     }
-                    coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                    synchronized(this.objectif){
+                        coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                    }
                 }
             }
-            
         }
-
         c.sendConnectionAccepted(this.phase, scores, coord);
     }
 

@@ -33,7 +33,7 @@ public class Player{
         this.score = s;
     }
 
-    public void moveTo(int x, int y){
+    public void moveTo(double x, double y){
         this.x = x;
         this.y = y;
     }

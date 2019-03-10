@@ -41,6 +41,12 @@ public class Connexion extends Thread {
                         if(this.username.equals(commands[1])){
                             disconnect();
                         }
+                        break;
+                    case "NEWPOS":
+                        String[] vals = commands[1].split("X|Y");
+                        double x = Double.valueOf(vals[1]);
+                        double y = Double.valueOf(vals[2]);
+                        session.changePos(this.username, x, y);
                 }       
 
 
@@ -119,5 +125,14 @@ public class Connexion extends Thread {
     public void sendEndSession(String scores){
         this.out.println("WINNER/"+scores+"/");
     }
+
+    public void sendTick(String coords){
+        this.out.println("TICK/"+coords+"/");
+    }
+
+    public void sendNewObjectif(String coord, String scores){
+        this.out.println("NEWOBJ/"+coord+"/"+scores+"/");
+    }
+    
 }
         
