@@ -32,8 +32,16 @@ public class Connexion extends Thread {
                 // System.out.println("Received : "+commands);
                 switch(commands[0]){
                     case "CONNECT":
+                        //TODO Maybe Check only char between a - z
+                        commands[1] = commands[1].toLowerCase();
                         connect(commands);
-                }
+                        break;
+                    case "EXIT":
+                        commands[1] = commands[1].toLowerCase();
+                        if(this.username.equals(commands[1])){
+                            disconnect();
+                        }
+                }       
 
 
 
@@ -81,17 +89,35 @@ public class Connexion extends Thread {
     }
 
     private void disconnect(){
-        this.session.disconnect(this.username);
-        this.isConnectedToSession = false;
-        this.username = "";
+        if(this.isConnectedToSession){
+            this.session.disconnect(this.username);
+            this.isConnectedToSession = false;
+            this.username = "";
+        }
     }
 
     public void sendConnectionDenied(){
-        this.out.print("DENIED/");
+        this.out.println("DENIED/");
     }
 
-    public void sendConnectionAccepted(){
-        String res = "WELCOME/";
+    public void sendConnectionAccepted(String phase, String scores, String coord){
+        this.out.println("WELCOME/"+phase+"/"+scores+"/"+coord+"/");
+    }
+
+    public void sendNewPlayer(String user){
+        this.out.println("NEWPLAYER/"+user+"/");
+    }
+
+    public void sendDisconnectPlayer(String user){
+        this.out.println("PLAYERLEFT/"+user+"/");
+    }
+
+    public void sendStartSession(String coords, String coord){
+        this.out.println("SESSION/"+coords+"/"+coord+"/");
+    }
+
+    public void sendEndSession(String scores){
+        this.out.println("WINNER/"+scores+"/");
     }
 }
         

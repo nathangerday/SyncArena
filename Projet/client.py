@@ -25,6 +25,7 @@ class Player:
         self.vector = (0.0, 0.0)
         self.turnit = 0.03
         self.thrustit = 0.002
+        self.score = 0
         self.original_sprite = pygame.image.load(path_to_sprite)
         self.original_sprite = pygame.transform.scale(self.original_sprite, (self.sprite_size, self.sprite_size)) # Original sprite which should never change
         self.current_sprite = self.original_sprite # Sprite with correct transform
@@ -177,6 +178,8 @@ def start():
 ########### EXEMPLE SOCKET ASYNCHRONE ############
 
 import socket
+import sys
+
 
 HOST = "localhost"
 PORT = 45678
@@ -202,6 +205,21 @@ sock.connect((HOST, PORT))
 #         # print("Dors 5 secondes")
 #         # time.sleep(5)
 
+sock.sendall(("CONNECT/"+sys.argv[1]+"/\n").encode())
+i=0
+while(True):
+    try:
+        data = sock.recv(1024, socket.MSG_DONTWAIT)
+        print(data.decode())
+    except Exception:
+        pass
+    time.sleep(0.1)
+    i += 1
+    if(i==100 and sys.argv[1] == "kyrnale"):
+        sock.sendall(("EXIT/"+sys.argv[1]+"/\n").encode())
 
-sock.sendall(b"CONNECT/sourcier\n")
-time.sleep(30)
+
+sock.close()
+# time.sleep(3)
+# sock.sendall(b"CONNECT/kyrnale\n")
+# time.sleep(30)
