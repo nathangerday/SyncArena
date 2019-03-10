@@ -185,31 +185,23 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.connect((HOST, PORT))
 
 
-readyToSend = True
-
-while(True):
-    if(readyToSend):
-        readyToSend = False
-        var = input("Give me something to send : ") + "\n"
-        sock.sendall(var.encode(encoding='UTF-8'))
-
-    try:
-        data = sock.recv(1024, socket.MSG_DONTWAIT) # Will send exception if nothing to receive
-        print("Received : ", data.decode("utf-8"))
-        readyToSend = True
-    except Exception:
-        pass
-        # print("Dors 5 secondes")
-        # time.sleep(5)
-
-
-# sock.sendall(b"Hello\n")
+# readyToSend = True
 
 # while(True):
-#     data = None
+#     if(readyToSend):
+#         readyToSend = False
+#         var = input("Give me something to send : ") + "\n"
+#         sock.sendall(var.encode(encoding='UTF-8'))
+
 #     try:
 #         data = sock.recv(1024, socket.MSG_DONTWAIT) # Will send exception if nothing to receive
-#         print(data.decode('utf-8'))
+#         print("Received : ", data.decode("utf-8"))
+#         readyToSend = True
 #     except Exception:
-#         print("Dors 5 secondes")
-#         time.sleep(5)
+#         pass
+#         # print("Dors 5 secondes")
+#         # time.sleep(5)
+
+
+sock.sendall(b"CONNECT/sourcier\n")
+time.sleep(30)
