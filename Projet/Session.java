@@ -14,9 +14,14 @@ public class Session {
 
     private Objectif objectif = null;
     private String phase = "inactive";
+    
     private int delayBeforeStart = 10;
     private int server_tickrate = 1;
 
+    /**
+     * Creates the player associated with the given username if 
+     * it is not already known and save the reference to the Connexion
+     */
     public boolean addUser(String name, Connexion c) {
         synchronized (userLock) {
             if (!players.containsKey(name)) {
@@ -28,6 +33,14 @@ public class Session {
         }
     }
 
+    /**
+     * Try to add a new player.
+     * If it is the first player in the session, start a 
+     * countdown to start the session after "delayBeforeStart" seconds.
+     * When succeeding, the newly connected client receives an accept message
+     * and every other client is notified.
+     * If it doesn't the client is sent a denied connection message.
+     */
     public boolean connect(String name, Connexion c) {
         if (addUser(name, c)) {
             synchronized (phaseLock) {
@@ -44,6 +57,12 @@ public class Session {
         return false;
     }
 
+
+    /**
+     * Creates a thread that will begin after the amount of seconds defined in 
+     * "delayBeforeStart", which will then call the start() function to begin the 
+     * session
+     */
     private void scheduleStart() {
         ScheduledExecutorService sch = Executors.newSingleThreadScheduledExecutor();
 
@@ -56,6 +75,11 @@ public class Session {
         sch.schedule(task, delayBeforeStart, TimeUnit.SECONDS);
     }
 
+    /**
+     * Creates a thread that will keep running as long as the Session is in a 
+     * "ingame" phase and will call the tick() function "server_tickrate" times 
+     * per second
+     */
     private void autoTick() {
         Runnable task = new Runnable() {
             public void run() {
@@ -77,6 +101,13 @@ public class Session {
         new Thread(task).start();
     }
 
+    /**
+     * Start the session if the phase is currently "waiting".
+     * It then creates an Objectif, send a message to every client to
+     * notify the start of the session.
+     * Finally it calls autoTick() to send message to client regularly of the
+     * state of the game
+     */
     public void start() {
         synchronized (phaseLock) {
             if (this.phase.equals("waiting")) {
@@ -115,6 +146,10 @@ public class Session {
         autoTick(); // Start a thread that will call tick once every server_tickrate
     }
 
+    /**
+     * Function called every server_tickrate to send a message with updated
+     * information to every client
+     */
     public void tick(){
         synchronized(userLock){
             String coords = "";
@@ -137,7 +172,9 @@ public class Session {
         }
     }
 
-
+    /**
+     * Changes the current objectif and send a message to every client.
+     */
     public void changeObjectif(){
         String scores = "";
         String coord = "";
@@ -162,6 +199,12 @@ public class Session {
         
     }   
 
+    /**
+     * Terminate the current session if it is in "ingame" phase.
+     * If there are still players in the session, it sends a message 
+     * with scores to all of them, then prepare to restart a new gameplay 
+     * session by starting the function which will call start() after a delay
+     */
     public void endSession(){
         synchronized(userLock){
             synchronized(phaseLock){
@@ -189,6 +232,9 @@ public class Session {
         }
     }
 
+    /**
+     * Changes the current pos of the given player
+     */
     public void changePos(String user, double x, double y){
         synchronized(userLock){
             this.players.get(user).moveTo(x, y);
@@ -196,7 +242,11 @@ public class Session {
     }
 
 
-
+    /**
+     * Disconnect the given player from the session.
+     * If it was the last player, terminate the current session.
+     * Otherwise, send a message to every other client to notify of the disconnect
+     */
 	public void disconnect(String username) {
         synchronized(userLock){
             this.players.remove(username);
@@ -217,7 +267,10 @@ public class Session {
         }
     }
     
-
+    /**
+     * Send a message to the newly connected player with 
+     * relevant information.
+     */
     private void connectionAccepted(Connexion c){
         String scores = "";
         String coord = "";
@@ -244,6 +297,10 @@ public class Session {
         c.sendConnectionAccepted(this.phase, scores, coord);
     }
 
+    /**
+     * Send a message to every client except the added one, to notify
+     * of the new player connection.
+     */
     private void notifyOfNewPlayerConnection(String addedPlayer){
         synchronized(userLock){
             for(Map.Entry<String, Connexion> entry : connexions.entrySet()){

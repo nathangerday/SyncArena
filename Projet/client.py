@@ -220,9 +220,10 @@ while(True):
     except Exception:
         pass
     time.sleep(0.1)
-#     i += 1
-    # if(i==100 and sys.argv[1] == "kyrnale"):
-    #     sock.sendall(("EXIT/"+sys.argv[1]+"/\n").encode())
+    i += 1
+    if(i==150 and sys.argv[1] == "kyrnale"):
+        print("SEND POS ====================================")
+        sock.sendall(("NEWPOS/X0.46Y-0.21/\n").encode())
 
 
 sock.close()

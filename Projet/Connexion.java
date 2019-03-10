@@ -59,7 +59,7 @@ public class Connexion extends Thread {
 
 
                 // out.print(); 
-                out.flush();
+                // out.flush();
             }
         }catch (IOException e) {
             System.out.println("connexion : "+e.toString());
