@@ -1,0 +1,17 @@
+<project name="PC2R-Projet" default="compile" basedir=".">
+    <property name="src" location="src"/>
+    <property name="build" location="bin"/>
+    <target name="init">
+        <mkdir dir="${build}"/>
+    </target>
+    <target name="run">
+        <java classname="server.Serveur" classpath="${build}"></java>
+    </target>
+    <target name="compile" depends="init">
+        <javac srcdir="${src}" destdir="${build}"/>
+    </target>
+    <target name="clean">
+        <delete dir="${build}"/>    
+        <delete dir="${dist}"/>
+    </target>
+</project>
