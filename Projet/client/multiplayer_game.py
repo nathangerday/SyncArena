@@ -65,7 +65,7 @@ class MultiplayerGame:
         except BlockingIOError: # Nothing to read
             return
         
-        commands = data.decode().split("\n")[:-1]
+        commands = data.decode().split("\n")
         commands = [cmd.split("/") for cmd in commands]
         # print(commands)
 
