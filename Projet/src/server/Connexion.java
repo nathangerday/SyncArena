@@ -113,34 +113,42 @@ public class Connexion extends Thread {
 
     public void sendConnectionDenied(){
         this.out.println("DENIED/");
+        this.out.flush();
     }
 
     public void sendConnectionAccepted(String phase, String scores, String coord){
         this.out.println("WELCOME/"+phase+"/"+scores+"/"+coord+"/");
+        this.out.flush();
     }
 
     public void sendNewPlayer(String user){
         this.out.println("NEWPLAYER/"+user+"/");
+        this.out.flush();
     }
 
     public void sendDisconnectPlayer(String user){
         this.out.println("PLAYERLEFT/"+user+"/");
+        this.out.flush();
     }
 
     public void sendStartSession(String coords, String coord){
         this.out.println("SESSION/"+coords+"/"+coord+"/");
+        this.out.flush();
     }
 
     public void sendEndSession(String scores){
         this.out.println("WINNER/"+scores+"/");
+        this.out.flush();
     }
 
     public void sendTick(String coords){
         this.out.println("TICK/"+coords+"/");
+        this.out.flush();
     }
 
     public void sendNewObjectif(String coord, String scores){
         this.out.println("NEWOBJ/"+coord+"/"+scores+"/");
+        this.out.flush();
     }
     
 }
