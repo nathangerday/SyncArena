@@ -107,7 +107,7 @@ class MultiplayerGame:
                 if(name in self.arena.players):
                     self.arena.players[name].score = int(score)
                 else:
-                    new_player = Player("evilFighter.png", name)
+                    new_player = Player("spaceship_sprite.png", name)
                     new_player.score = int(score)
                     self.arena.players[name] = new_player
 
@@ -118,7 +118,7 @@ class MultiplayerGame:
     def apply_command_newplayer(self, cmd):
         user = cmd[1]
         self.logger.add_message(user + " joins the game")
-        self.arena.players[user] = Player("evilFighter.png", user)
+        self.arena.players[user] = Player("spaceship_sprite.png", user)
 
     def apply_command_playerleft(self, cmd):
         user = cmd[1]
@@ -140,7 +140,7 @@ class MultiplayerGame:
                 self.arena.players[name].moveTo(pos[0], pos[1])
                 self.arena.players[name].to_display = True
             else:
-                self.arena.players[name] = Player("evilFighter.png", name, pos, True)
+                self.arena.players[name] = Player("spaceship_sprite.png", name, pos, True)
         goalx, goaly = parse_coord(coord)
         self.arena.goal = Goal(goalx, goaly)
         self.session_state = "ingame"
