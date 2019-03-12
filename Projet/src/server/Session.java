@@ -18,8 +18,8 @@ public class Session {
     private Objectif objectif = null;
     private String phase = "inactive";
     
-    private int delayBeforeStart = 10;
-    private int server_tickrate = 1;
+    private int delayBeforeStart = 4;
+    private int server_tickrate = 10;
 
     /**
      * Creates the player associated with the given username if 

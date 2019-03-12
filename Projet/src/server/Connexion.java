@@ -30,12 +30,10 @@ public class Connexion extends Thread {
         try {
             while (true) {
                 String[] commands;
-                try{
-                    commands = in.readLine().split("/");
-                }catch(NullPointerException e){
-                    return;
-                }
-                // System.out.println("Received : "+commands);
+                commands = in.readLine().split("/");
+                // System.out.println(commands[1]);
+                // System.out.flush();
+                
                 switch(commands[0]){
                     case "CONNECT":
                         //TODO Maybe Check only char between a - z
@@ -49,6 +47,7 @@ public class Connexion extends Thread {
                         }
                         break;
                     case "NEWPOS":
+                       
                         if(this.isConnectedToSession){
                             String[] vals = commands[1].split("X|Y");
                             double x = Double.valueOf(vals[1]);
@@ -67,6 +66,8 @@ public class Connexion extends Thread {
         }
         finally {
             try {
+                in.close();
+                out.close();
                 client.close();
             }catch (IOException e) {
                 //TODO Do something
@@ -78,7 +79,7 @@ public class Connexion extends Thread {
 
 
     private void connect(String commands[]){
-        if(!this.isConnectedToSession){
+        if(!this.isConnectedToSession && commands[1].length() > 0){
             if(this.isConnectedToSession = this.session.connect(commands[1], this)){ //Connexion reussie
                 this.username = commands[1];
             }

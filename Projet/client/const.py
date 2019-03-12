@@ -1,3 +1,6 @@
+HOST = "localhost"
+PORT = 45678
+
 MAX_THRUST = 0.01
 TURNIT = 0.03
 THRUSTIT = 0.002

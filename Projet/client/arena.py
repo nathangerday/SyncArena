@@ -6,7 +6,7 @@ class Arena:
     def __init__(self, window_width, window_height):
         self.h = window_height / 2
         self.l = window_width / 2
-        self.players = []
+        self.players = {}
         self.goal = None
 
     def draw(self, window):
@@ -14,7 +14,7 @@ class Arena:
         """
         
         #Draw players
-        for p in self.players:
+        for p in self.players.values():
             x = p.pos[0] * self.h + self.h - p.sprite_size/2
             y = (-p.pos[1]) * self.l + self.l - p.sprite_size/2
             p.draw(window, x, y)
@@ -24,9 +24,8 @@ class Arena:
             x = int(self.goal.x * self.h + self.h)
             y = int((-self.goal.y) * self.l + self.l)
 
-            # UGLY (Don't reelly wanna give the player coordinates) Changing color when the "real" player is passing through
-            self.goal.draw(window, x, y, self.players[0].pos[0], self.players[0].pos[1])
+            self.goal.draw(window, x, y)
         
     def update(self):
-        for p in self.players:
+        for p in self.players.values():
             p.update()

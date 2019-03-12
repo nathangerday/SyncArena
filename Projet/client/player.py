@@ -9,9 +9,10 @@ class Player:
     """
     
 
-    def __init__(self, path_to_sprite):
+    def __init__(self, path_to_sprite, username, pos=(0.0, 0.0)):
         self.sprite_size = 32
-        self.pos = (0.0, 0.0)
+        self.username = username
+        self.pos = pos
         self.direction = 0
         self.vector = (0.0, 0.0)
         self.score = 0
@@ -32,6 +33,9 @@ class Player:
 
     def anticlock(self):
         self.direction += TURNIT
+    
+    def moveTo(self, x, y):
+        self.pos = (x, y)
 
     def update(self):
         """Fonction a appele lorsque l'on veut mettre a jour l'entite avec les bonnes coordonnees / rotation

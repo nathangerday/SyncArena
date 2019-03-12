@@ -17,11 +17,6 @@ class Goal:
     def collect(self):
         self.collected = True
 
-    def draw(self, window, xwindow, ywindow, xplayer, yplayer):
-        if(self.isCollectable(xplayer, yplayer)):
-            color = (255, 0, 0)
-        else:
-            color = (255, 255, 0)
-
-
+    def draw(self, window, xwindow, ywindow):
+        color = (255, 255, 0)
         pygame.draw.circle(window, color, (xwindow, ywindow), int(self.obj_radius * pygame.display.get_surface().get_width()/2))
