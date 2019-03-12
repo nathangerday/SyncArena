@@ -1,12 +1,12 @@
 import math
 import pygame
-
+from const import OBJ_RADIUS
 class Goal:
 
     def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.obj_radius = 0.05
+        self.obj_radius = OBJ_RADIUS
         self.collected = False
 
     def isCollectable(self, otherx, othery):

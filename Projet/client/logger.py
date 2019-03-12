@@ -16,10 +16,9 @@ class Logger:
 
         # Creates new list with message not displayed for too long
         self.messages = [msg for msg in self.messages if not self.is_message_too_old(now, msg)]
-        ordinate_to_draw = 0
+        ordinate_to_draw = 5
         for (msg, _) in reversed(self.messages):
             surface = self.font.render(msg, True, (0, 255, 255))
-            surface.set_alpha(120)
             window.blit(surface, (0, ordinate_to_draw))
             ordinate_to_draw += 10*1.8
 

@@ -5,15 +5,17 @@ import pygame
 import send_serveur
 from arena import Arena
 from player import Player
-from const import REFRESH_TICKRATE, HOST, PORT
+from const import REFRESH_TICKRATE, HOST, PORT, WIN_CAP
 from logger import Logger
 from goal import Goal
+from score import Score
 
 class MultiplayerGame:
 
     def __init__(self, client, username):
         self.client = client
         self.logger = Logger()
+        self.score_displayer = Score()
         self.username = username
         self.is_socket_connected_to_server = False
         self.session_state = "nosession" # Indicate whether we not connected, requested connection or in a session
@@ -89,7 +91,7 @@ class MultiplayerGame:
 
     def apply_command_welcome(self, cmd):
         phase = cmd[1]
-        score = cmd[2]
+        scores = cmd[2]
         coord = cmd[3]
         if(phase == "waiting"):
             self.logger.add_message("Waiting to start session")
@@ -99,7 +101,15 @@ class MultiplayerGame:
             self.session_state = "ingame"
             goalx, goaly = parse_coord(coord)
             self.arena.goal = Goal(goalx, goaly)
-            #TODO Handle scores + add all players
+
+            for s in scores.split("|"):
+                [name, score] = s.split(":")
+                if(name in self.arena.players):
+                    self.arena.players[name].score = int(score)
+                else:
+                    new_player = Player("evilFighter.png", name)
+                    new_player.score = int(score)
+                    self.arena.players[name] = new_player
 
     def apply_command_denied(self, cmd):
         self.logger.add_message("Joining session failed")
@@ -137,15 +147,24 @@ class MultiplayerGame:
 
     def apply_command_winner(self, cmd):
         scores = cmd[1]
-        #TODO Determine winner from score
-        self.logger.add_message("End of game, winner is : ")
+        for s in scores.split("|"):
+            [name, score] = s.split(":")
+            self.arena.players[name].score = int(score)
+            if(int(score) == WIN_CAP):
+                winner = name
+        if(self.username == winner):
+            self.logger.add_message("End of game, congratulations you are the winner !!")
+        else:
+            self.logger.add_message("End of game, winner is : " + winner)
         self.logger.add_message("A new game will restart soon")
         self.session_state = "waiting"
         self.arena.goal = None
+
         # Don't display other player if not ingame
         for p in self.arena.players.values():
             if(not p.username == self.username):
                 p.to_display = False
+        
 
     def apply_command_tick(self, cmd):
         coords = cmd[1]
@@ -154,14 +173,19 @@ class MultiplayerGame:
         for p in players_coords:
             [name, pos] = p.split(":")
             pos = parse_coord(pos)
-            self.arena.players[name].moveTo(pos[0], pos[1])
+            player = self.arena.players[name]
+            player.moveTo(pos[0], pos[1])
+            player.to_display = True
 
 
     def apply_command_newobj(self, cmd):
         coord = cmd[1]
         scores = cmd[2]
 
-        # TODO Update scores
+        for s in scores.split("|"):
+            [name, score] = s.split(":")
+            self.arena.players[name].score = int(score)
+
         goalx, goaly = parse_coord(coord)
         self.arena.goal = Goal(goalx, goaly)
 
@@ -192,6 +216,7 @@ class MultiplayerGame:
         self.client.window.fill((0, 0, 0)) # Efface tout ce qui est sur la fenetre
         self.arena.draw(self.client.window) # Dessine toutes les entites
         self.logger.draw(self.client.window)
+        self.score_displayer.draw(self.arena.players, self.client.window)
         pygame.display.update() # Met a jour la fenetre
 
     def stop(self):

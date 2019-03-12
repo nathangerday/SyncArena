@@ -9,7 +9,7 @@ class Client:
         self.window_height = window_height
 
         username = ""
-        while(not re.match('^[a-z]+$', username)):
+        while(not re.match('^[a-z]+$', username) or len(username) > 10):
             username = input("Username : ")
 
         pygame.init()
