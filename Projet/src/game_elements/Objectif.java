@@ -1,6 +1,7 @@
 package game_elements;
 
 import java.util.Random;
+import java.lang.Math;
 
 public class Objectif{
     private double x, y;
@@ -34,5 +35,9 @@ public class Objectif{
 
     public double getRadius(){
         return this.radius;
+    }
+
+    public boolean isCollectableBy(Player p){
+        return  Math.sqrt(Math.pow((x - p.getX()), 2) + Math.pow(y - p.getY(), 2))   < this.radius;
     }
 }

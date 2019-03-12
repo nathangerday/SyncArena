@@ -18,8 +18,10 @@ public class Session {
     private Objectif objectif = null;
     private String phase = "inactive";
     
-    private int delayBeforeStart = 4;
+    private int delayBeforeStart = 10;
     private int server_tickrate = 10;
+
+    private int win_cap = 3;
 
     /**
      * Creates the player associated with the given username if 
@@ -236,11 +238,24 @@ public class Session {
     }
 
     /**
-     * Changes the current pos of the given player
+     * Changes the current pos of the given player and checks whether he can collect the Objectif
      */
     public void changePos(String user, double x, double y){
         synchronized(userLock){
-            this.players.get(user).moveTo(x, y);
+            synchronized(phaseLock){
+                synchronized(objectifLock){
+                    Player player = this.players.get(user);
+                    player.moveTo(x, y);
+                    if(this.objectif.isCollectableBy(player)){
+                        player.setScore(player.getScore() + 1);
+                        if(player.getScore() >= win_cap){
+                            endSession();
+                        }else{
+                            changeObjectif();
+                        }
+                    }
+                }
+            }
         }
     }
 

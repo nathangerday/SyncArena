@@ -144,7 +144,8 @@ class MultiplayerGame:
         self.arena.goal = None
         # Don't display other player if not ingame
         for p in self.arena.players.values():
-            p.to_display = False
+            if(not p.username == self.username):
+                p.to_display = False
 
     def apply_command_tick(self, cmd):
         coords = cmd[1]
