@@ -20,15 +20,13 @@ class MultiplayerGame:
         self.socket = None
         
         self.arena = Arena(self.client.window_width, self.client.window_height) # Creation de l'arene
-        self.main_player = Player("evilFighter.png", self.username)
+        self.main_player = Player("evilFighter.png", self.username, to_display=True)
 
         self.arena.players[username] = self.main_player
         self.main_loop()
 
     def main_loop(self):
         while(True):
-            # now = current_milli_time() # TODO Delete
-
             self.handle_server_coms()
 
             self.handle_keyboard_input()
@@ -38,7 +36,6 @@ class MultiplayerGame:
             self.draw_frame()
 
             self.client.clock.tick(REFRESH_TICKRATE) # Limite le nombre de mise a jour par seconde
-            # print(current_milli_time() - now, " ms per frame") #TODO Delete
 
     def handle_server_coms(self):
         if(not self.is_socket_connected_to_server):
@@ -102,7 +99,7 @@ class MultiplayerGame:
             self.session_state = "ingame"
             goalx, goaly = parse_coord(coord)
             self.arena.goal = Goal(goalx, goaly)
-            #TODO Handle scores
+            #TODO Handle scores + add all players
 
     def apply_command_denied(self, cmd):
         self.logger.add_message("Joining session failed")
@@ -111,6 +108,7 @@ class MultiplayerGame:
     def apply_command_newplayer(self, cmd):
         user = cmd[1]
         self.logger.add_message(user + " joins the game")
+        self.arena.players[user] = Player("evilFighter.png", user)
 
     def apply_command_playerleft(self, cmd):
         user = cmd[1]
@@ -127,16 +125,26 @@ class MultiplayerGame:
         for p in players_coords:
             [name, pos] = p.split(":")
             pos = parse_coord(pos)
-            if(name == self.username):
-                self.main_player.moveTo(pos[0], pos[1])
+            if(name in self.arena.players):
+                self.arena.players[name].reset()
+                self.arena.players[name].moveTo(pos[0], pos[1])
+                self.arena.players[name].to_display = True
             else:
-                self.arena.players[name] = Player("evilFighter.png", name, pos)
+                self.arena.players[name] = Player("evilFighter.png", name, pos, True)
         goalx, goaly = parse_coord(coord)
         self.arena.goal = Goal(goalx, goaly)
         self.session_state = "ingame"
 
     def apply_command_winner(self, cmd):
-        pass
+        scores = cmd[1]
+        #TODO Determine winner from score
+        self.logger.add_message("End of game, winner is : ")
+        self.logger.add_message("A new game will restart soon")
+        self.session_state = "waiting"
+        self.arena.goal = None
+        # Don't display other player if not ingame
+        for p in self.arena.players.values():
+            p.to_display = False
 
     def apply_command_tick(self, cmd):
         coords = cmd[1]
@@ -149,7 +157,12 @@ class MultiplayerGame:
 
 
     def apply_command_newobj(self, cmd):
-        pass
+        coord = cmd[1]
+        scores = cmd[2]
+
+        # TODO Update scores
+        goalx, goaly = parse_coord(coord)
+        self.arena.goal = Goal(goalx, goaly)
 
 
     def handle_keyboard_input(self):

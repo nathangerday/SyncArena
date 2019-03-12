@@ -1,14 +1,6 @@
-import time
+import re
 import pygame
 from multiplayer_game import MultiplayerGame
-
-########## FOR DEBUG ################
-current_milli_time = lambda: int(round(time.time() * 1000))
-#####################################
-
-
-
-
 
 class Client:
 
@@ -17,9 +9,9 @@ class Client:
         self.window_height = window_height
 
         username = ""
-        while(len(username) == 0):
+        while(not re.match('^[a-z]+$', username)):
             username = input("Username : ")
-            
+
         pygame.init()
         self.window = pygame.display.set_mode((window_width, window_height))
         pygame.display.set_caption(title)

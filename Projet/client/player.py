@@ -9,9 +9,10 @@ class Player:
     """
     
 
-    def __init__(self, path_to_sprite, username, pos=(0.0, 0.0)):
+    def __init__(self, path_to_sprite, username, pos=(0.0, 0.0), to_display=False):
         self.sprite_size = 32
         self.username = username
+        self.to_display = to_display
         self.pos = pos
         self.direction = 0
         self.vector = (0.0, 0.0)
@@ -37,6 +38,10 @@ class Player:
     def moveTo(self, x, y):
         self.pos = (x, y)
 
+    def reset(self):
+        self.vector = (0.0, 0.0)
+        self.score = 0
+
     def update(self):
         """Fonction a appele lorsque l'on veut mettre a jour l'entite avec les bonnes coordonnees / rotation
         """
@@ -50,4 +55,5 @@ class Player:
         # print(self.pos)
 
     def draw(self, window, xwindow, ywindow):
-        window.blit(self.current_sprite, (xwindow, ywindow))
+        if(self.to_display):
+            window.blit(self.current_sprite, (xwindow, ywindow))
