@@ -1,15 +1,15 @@
 
 import math
+import random
 import pygame
 from const import *
-
 
 class Player:
     """Represente une voiture pouvant etre controlee par le joueur ou par le serveur
     """
     
 
-    def __init__(self, path_to_sprite, username, pos=(0.0, 0.0), to_display=False):
+    def __init__(self, path_to_sprite, username, pos=(random.uniform(-1, 1), random.uniform(-1, 1)), to_display=False):
         self.sprite_size = 32
         self.username = username
         self.to_display = to_display

@@ -15,7 +15,7 @@ class MultiplayerGame:
     def __init__(self, client, username):
         self.client = client
         self.logger = Logger()
-        self.score_displayer = Score()
+        self.score_displayer = Score(username)
         self.username = username
         self.is_socket_connected_to_server = False
         self.session_state = "nosession" # Indicate whether we not connected, requested connection or in a session
