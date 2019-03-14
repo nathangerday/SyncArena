@@ -2,8 +2,8 @@
 HOST = "localhost"
 PORT = 45678
 TEST_DISPLAY_LENGTH = 5
-REFRESH_TICKRATE = 30 # Must be much higher than server_tickrate
-SERVER_TICKRATE = 10
+REFRESH_TICKRATE = 60 # Must be much higher than server_tickrate
+SERVER_TICKRATE = 5
 
 # ======= MUST BE IDENTICAL TO SERVER =======
 MAX_THRUST = 0.01

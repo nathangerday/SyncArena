@@ -31,6 +31,9 @@ public class Connexion extends Thread {
             while (true) {
                 String[] commands;
                 commands = in.readLine().split("/");
+                // String tmp = in.readLine();
+                // System.out.println(tmp);
+                // commands = tmp.split("/");
                 // System.out.println(commands[1]);
                 // System.out.flush();
                 
@@ -47,12 +50,20 @@ public class Connexion extends Thread {
                         }
                         break;
                     case "NEWPOS":
-                       
+                       //TODO Partie B : Il ne devrait plus recevoir de newpos ( a verifier )
                         if(this.isConnectedToSession){
                             String[] vals = commands[1].split("X|Y");
                             double x = Double.valueOf(vals[1]);
                             double y = Double.valueOf(vals[2]);
                             session.changePos(this.username, x, y);
+                        }
+                        break;
+                    case "NEWCOM":
+                        if(this.isConnectedToSession){
+                            String[] vals = commands[1].split("A|T");
+                            double angle = Double.valueOf(vals[1]);
+                            int nb_thrust = Integer.valueOf(vals[2]);
+                            session.newCom(this.username, angle, nb_thrust);
                         }
                 }       
 
@@ -141,8 +152,8 @@ public class Connexion extends Thread {
         this.out.flush();
     }
 
-    public void sendTick(String coords){
-        this.out.println("TICK/"+coords+"/");
+    public void sendTick(String vcoords){
+        this.out.println("TICK/"+vcoords+"/");
         this.out.flush();
     }
 

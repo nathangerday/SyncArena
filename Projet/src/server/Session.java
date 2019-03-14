@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import game_elements.*;
+import constants.Constants;
 
 public class Session {
     private Map<String, Player> players = new HashMap<>();
@@ -19,9 +20,7 @@ public class Session {
     private String phase = "inactive";
     
     private int delayBeforeStart = 10;
-    private int server_tickrate = 10;
 
-    private int win_cap = 3;
 
     /**
      * Creates the player associated with the given username if 
@@ -82,7 +81,7 @@ public class Session {
 
     /**
      * Creates a thread that will keep running as long as the Session is in a 
-     * "ingame" phase and will call the tick() function "server_tickrate" times 
+     * "ingame" phase and will call the tick() function "SERVER_TICKRATE" times 
      * per second
      */
     private void autoTick() {
@@ -96,7 +95,7 @@ public class Session {
                     }
                     tick();
                     try {
-                        Thread.sleep(1000 / server_tickrate);
+                        Thread.sleep(1000 / Constants.SERVER_TICKRATE);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -148,32 +147,53 @@ public class Session {
                 entry.getValue().sendStartSession(coords, coord);
             }
         }
-        autoTick(); // Start a thread that will call tick once every server_tickrate
+        autoTick(); // Start a thread that will call tick once every SERVER_TICKRATE
     }
 
     /**
-     * Function called every server_tickrate to send a message with updated
+     * Function called every SERVER_TICKRATE to send a message with updated
      * information to every client
      */
     public void tick(){
         synchronized(userLock){
-            String coords = "";
-            int i = players.size();
-            DecimalFormat sixdecimals = new DecimalFormat("#.######");
+            synchronized(phaseLock){
+                synchronized(objectifLock){
+                    String vcoords = "";
+                    int i = players.size();
+                    DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
-            for (Player p : players.values()) {
-                i--;
-                Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-                Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-                coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
+                    for (Player p : players.values()) {
+                        System.out.println("Objectif : " + this.objectif.getX() +", "+ this.objectif.getY());
+                        System.out.println("Player before : " + p.getX() +", "+p.getY());
+                        p.update();
+                        System.out.println("Player after : " + p.getX() +", "+p.getY());
+                        System.out.println("=====================================================");
+                        if(this.objectif.isCollectableBy(p)){
+                            p.setScore(p.getScore() + 1);
+                            if(p.getScore() >= Constants.WIN_CAP){
+                                endSession();
+                            }else{
+                                changeObjectif();
+                            }
+                        }
+                        i--;
+                        Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
+                        Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
+                        Double vectorxformat = Double.valueOf(sixdecimals.format(p.getVectorX()));
+                        Double vectoryformat = Double.valueOf(sixdecimals.format(p.getVectorY()));
+                        Double directionformat = Double.valueOf(sixdecimals.format(p.getDirection()));
+                        vcoords += p.getUsername() + ":X" + xformat + "Y" + yformat + "VX" + vectorxformat + "VY" + vectoryformat + "T" + directionformat;
 
-                if (i > 0) {
-                    coords += "|";
+                        if (i > 0) {
+                            vcoords += "|";
+                        }
+                    }
+                    for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
+                        entry.getValue().sendTick(vcoords);
+                    }
                 }
             }
-            for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
-                entry.getValue().sendTick(coords);
-            }
+            
         }
     }
 
@@ -246,16 +266,27 @@ public class Session {
                 synchronized(objectifLock){
                     Player player = this.players.get(user);
                     player.moveTo(x, y);
-                    if(this.objectif.isCollectableBy(player)){
-                        player.setScore(player.getScore() + 1);
-                        if(player.getScore() >= win_cap){
-                            endSession();
-                        }else{
-                            changeObjectif();
-                        }
-                    }
+
+                    // ==== Partie A ====
+                    // if(this.objectif.isCollectableBy(player)){
+                    //     player.setScore(player.getScore() + 1);
+                    //     if(player.getScore() >= Constants.WIN_CAP){
+                    //         endSession();
+                    //     }else{
+                    //         changeObjectif();
+                    //     }
+                    // }
                 }
             }
+        }
+    }
+
+
+    public void newCom(String user, double angle, int nb_thrust){
+        synchronized(userLock){
+            Player p = this.players.get(user);
+            p.receiveAngleCommand(angle);
+            p.receiveThrustCommand(nb_thrust);
         }
     }
 

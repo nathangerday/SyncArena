@@ -2,10 +2,11 @@ package game_elements;
 
 import java.util.Random;
 import java.lang.Math;
+import constants.Constants;
 
 public class Objectif{
     private double x, y;
-    private double radius;
+    private double radius = Constants.OBJ_RADIUS;
 
     public Objectif(){
         Random r = new Random();

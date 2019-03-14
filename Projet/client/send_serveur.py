@@ -7,3 +7,6 @@ def newpos(socket, pos):
 
 def exitsession(socket, username):
     socket.sendall("EXIT/"+str(username)+"/\n")
+
+def newcom(socket, angle, nb_thrust):
+    socket.sendall(("NEWCOM/A"+str(angle)+"T"+str(nb_thrust)+"/\n").encode())

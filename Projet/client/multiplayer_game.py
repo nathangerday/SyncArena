@@ -1,14 +1,15 @@
 import socket
 import re
-import sys
+import time
 import pygame
 import send_serveur
 from arena import Arena
 from player import Player
-from const import REFRESH_TICKRATE, HOST, PORT, WIN_CAP
+from const import REFRESH_TICKRATE, HOST, PORT, WIN_CAP, SERVER_TICKRATE
 from logger import Logger
 from goal import Goal
 from score import Score
+
 
 class MultiplayerGame:
 
@@ -23,6 +24,8 @@ class MultiplayerGame:
         
         self.arena = Arena(self.client.window_width, self.client.window_height) # Creation de l'arene
         self.main_player = Player("evilFighter.png", self.username, to_display=True)
+
+        self.last_newcom = 0
 
         self.arena.players[username] = self.main_player
         self.main_loop()
@@ -55,8 +58,17 @@ class MultiplayerGame:
             self.session_state = "request"
             send_serveur.connect(self.socket, self.username)
         elif(self.session_state == "ingame"):
-            send_serveur.newpos(self.socket, self.main_player.pos)
+            # send_serveur.newpos(self.socket, self.main_player.pos)
         
+            if(time.time() - self.last_newcom > 1 / SERVER_TICKRATE):
+                send_serveur.newcom(self.socket, self.main_player.command_angle, self.main_player.command_thrust)
+                self.last_newcom = time.time()
+
+                # Commands sent, reset
+                self.main_player.command_angle = 0
+                self.main_player.command_thrust = 0
+
+
         self.handle_server_responses()
 
     def handle_server_responses(self):
@@ -67,7 +79,7 @@ class MultiplayerGame:
         
         commands = data.decode().split("\n")
         commands = [cmd.split("/") for cmd in commands]
-        # print(commands)
+        print(commands)
 
         #TODO Handle theses commands in another method
         for cmd in commands:
@@ -135,6 +147,7 @@ class MultiplayerGame:
         for p in players_coords:
             [name, pos] = p.split(":")
             pos = parse_coord(pos)
+            print(pos)
             if(name in self.arena.players):
                 self.arena.players[name].reset()
                 self.arena.players[name].moveTo(pos[0], pos[1])
@@ -171,17 +184,19 @@ class MultiplayerGame:
 
         players_coords = coords.split("|")
         for p in players_coords:
-            [name, pos] = p.split(":")
-            pos = parse_coord(pos)
+            [name, vals] = p.split(":")
+            pos,vector,direction = parse_coord(vals)
             player = self.arena.players[name]
             player.moveTo(pos[0], pos[1])
+            player.direction = direction
+            player.vector = vector
             player.to_display = True
 
 
     def apply_command_newobj(self, cmd):
         coord = cmd[1]
         scores = cmd[2]
-
+        self.logger.add_message("Setting a new objectif...")
         for s in scores.split("|"):
             [name, score] = s.split(":")
             self.arena.players[name].score = int(score)
@@ -231,6 +246,13 @@ class MultiplayerGame:
 def parse_coord(coord):
         """Parse coordinates with format X0.84Y0.48 to a tuple of float
         """
-        vals = re.split("X|Y", coord)
-        return (float(vals[1]), float(vals[2])) # Start at one since first is empty (nothing before X)
+        vals = re.split("VX|VY|T", coord)
+        pos = re.split("X|Y", vals[0])
+        
+        if(len(vals) == 1): # No vector or direction in received coordinates
+            return (float(pos[1]), float(pos[2]))
+        elif(len(vals) == 4):
+            vector = float(vals[1]), float(vals[2])
+            angle = float(vals[3])
+            return ((float(pos[1]), float(pos[2])), vector, angle)
 
