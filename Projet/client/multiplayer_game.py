@@ -1,14 +1,16 @@
 import socket
 import re
-import sys
+import time
 import pygame
 import send_serveur
 from arena import Arena
 from player import Player
-from const import REFRESH_TICKRATE, HOST, PORT, WIN_CAP
+from const import REFRESH_TICKRATE, HOST, PORT, WIN_CAP, SERVER_TICKRATE
 from logger import Logger
 from goal import Goal
 from score import Score
+from obstacle import Obstacle
+
 
 class MultiplayerGame:
 
@@ -23,6 +25,8 @@ class MultiplayerGame:
         
         self.arena = Arena(self.client.window_width, self.client.window_height) # Creation de l'arene
         self.main_player = Player("evilFighter.png", self.username, to_display=True)
+
+        self.last_newcom = 0
 
         self.arena.players[username] = self.main_player
         self.main_loop()
@@ -55,19 +59,28 @@ class MultiplayerGame:
             self.session_state = "request"
             send_serveur.connect(self.socket, self.username)
         elif(self.session_state == "ingame"):
-            send_serveur.newpos(self.socket, self.main_player.pos)
+            # send_serveur.newpos(self.socket, self.main_player.pos)
         
+            if(time.time() - self.last_newcom > 1 / SERVER_TICKRATE):
+                send_serveur.newcom(self.socket, self.main_player.command_angle, self.main_player.command_thrust)
+                self.last_newcom = time.time()
+
+                # Commands sent, reset
+                self.main_player.command_angle = 0
+                self.main_player.command_thrust = 0
+
+
         self.handle_server_responses()
 
     def handle_server_responses(self):
         try:
-            data = self.socket.recv(1024, socket.MSG_DONTWAIT)
+            data = self.socket.recv(8192, socket.MSG_DONTWAIT)
         except BlockingIOError: # Nothing to read
             return
         
         commands = data.decode().split("\n")
         commands = [cmd.split("/") for cmd in commands]
-        # print(commands)
+        print(commands)
 
         #TODO Handle theses commands in another method
         for cmd in commands:
@@ -93,6 +106,8 @@ class MultiplayerGame:
         phase = cmd[1]
         scores = cmd[2]
         coord = cmd[3]
+        obs_coords = cmd[4]
+
         if(phase == "waiting"):
             self.logger.add_message("Waiting to start session")
             self.session_state = "waiting"
@@ -101,7 +116,7 @@ class MultiplayerGame:
             self.session_state = "ingame"
             goalx, goaly = parse_coord(coord)
             self.arena.goal = Goal(goalx, goaly)
-
+            self.main_player.to_display = False # Wait to get coord before displaying
             for s in scores.split("|"):
                 [name, score] = s.split(":")
                 if(name in self.arena.players):
@@ -110,6 +125,11 @@ class MultiplayerGame:
                     new_player = Player("spaceship_sprite.png", name)
                     new_player.score = int(score)
                     self.arena.players[name] = new_player
+            
+            if(len(obs_coords) > 0):
+                for o in obs_coords.split("|"):
+                    pos = parse_coord(o)
+                    self.arena.obstacles.append(Obstacle(pos[0], pos[1]))
 
     def apply_command_denied(self, cmd):
         self.logger.add_message("Joining session failed")
@@ -129,6 +149,7 @@ class MultiplayerGame:
     def apply_command_session(self, cmd):
         coords = cmd[1]
         coord = cmd[2]
+        obs_coords = cmd[3]
 
         self.logger.add_message("Session starting !")
         players_coords = coords.split("|")
@@ -143,7 +164,14 @@ class MultiplayerGame:
                 self.arena.players[name] = Player("spaceship_sprite.png", name, pos, True)
         goalx, goaly = parse_coord(coord)
         self.arena.goal = Goal(goalx, goaly)
+        
+        if(len(obs_coords) > 0):
+            for o in obs_coords.split("|"):
+                pos = parse_coord(o)
+                self.arena.obstacles.append(Obstacle(pos[0], pos[1]))
+        
         self.session_state = "ingame"
+        
 
     def apply_command_winner(self, cmd):
         scores = cmd[1]
@@ -159,6 +187,7 @@ class MultiplayerGame:
         self.logger.add_message("A new game will restart soon")
         self.session_state = "waiting"
         self.arena.goal = None
+        self.arena.obstacles.clear()
 
         # Don't display other player if not ingame
         for p in self.arena.players.values():
@@ -171,17 +200,19 @@ class MultiplayerGame:
 
         players_coords = coords.split("|")
         for p in players_coords:
-            [name, pos] = p.split(":")
-            pos = parse_coord(pos)
+            [name, vals] = p.split(":")
+            pos,vector,direction = parse_coord(vals)
             player = self.arena.players[name]
             player.moveTo(pos[0], pos[1])
+            player.direction = direction
+            player.vector = vector
             player.to_display = True
 
 
     def apply_command_newobj(self, cmd):
         coord = cmd[1]
         scores = cmd[2]
-
+        self.logger.add_message("Setting a new objectif...")
         for s in scores.split("|"):
             [name, score] = s.split(":")
             self.arena.players[name].score = int(score)
@@ -231,6 +262,13 @@ class MultiplayerGame:
 def parse_coord(coord):
         """Parse coordinates with format X0.84Y0.48 to a tuple of float
         """
-        vals = re.split("X|Y", coord)
-        return (float(vals[1]), float(vals[2])) # Start at one since first is empty (nothing before X)
+        vals = re.split("VX|VY|T", coord)
+        pos = re.split("X|Y", vals[0])
+        
+        if(len(vals) == 1): # No vector or direction in received coordinates
+            return (float(pos[1]), float(pos[2]))
+        elif(len(vals) == 4):
+            vector = float(vals[1]), float(vals[2])
+            angle = float(vals[3])
+            return ((float(pos[1]), float(pos[2])), vector, angle)
 

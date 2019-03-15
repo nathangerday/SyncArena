@@ -2,21 +2,20 @@ package game_elements;
 
 import java.util.Random;
 import java.lang.Math;
+import constants.Constants;
 
 public class Objectif{
     private double x, y;
-    private double radius;
+    private double radius = Constants.OBJ_RADIUS;
 
     public Objectif(){
         Random r = new Random();
         this.x = (r.nextInt(200)/100.0) - 1;
         this.y = (r.nextInt(200)/100.0) - 1;
-        this.radius = 0.05;
     }
     public Objectif(double x, double y){
         this.x = x;
         this.y = y;
-        this.radius = 0.05;
     }
 
     public Objectif(double x, double y, double radius){

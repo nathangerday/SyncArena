@@ -1,16 +1,18 @@
 # ======= SAFE TO CHANGE =======
 HOST = "localhost"
 PORT = 45678
-TEST_DISPLAY_LENGTH = 5
-REFRESH_TICKRATE = 30 # Must be much higher than server_tickrate
-SERVER_TICKRATE = 10
+TEST_DISPLAY_LENGTH = 8
+REFRESH_TICKRATE = 60 # Must be much higher than server_tickrate
+SERVER_TICKRATE = 17
 
 # ======= MUST BE IDENTICAL TO SERVER =======
 MAX_THRUST = 0.01
-TURNIT = 0.03
+TURNIT = 0.06
 THRUSTIT = 0.002
 OBJ_RADIUS = 0.05
 WIN_CAP = 3
+VE_RADIUS = 0.04
+OB_RADIUS = 0.08
 
 
 
