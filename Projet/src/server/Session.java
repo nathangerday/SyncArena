@@ -33,6 +33,8 @@ public class Session {
     public boolean addUser(String name, Connexion c) {
         synchronized (userLock) {
             if (!players.containsKey(name)) {
+                Player newplayer = new Player(name);
+                resetToValidPosition(newplayer);
                 players.put(name, new Player(name));
                 connexions.put(name, c);
                 return true;
@@ -41,13 +43,14 @@ public class Session {
         }
     }
 
+    
+
     /**
-     * Try to add a new player.
-     * If it is the first player in the session, start a 
-     * countdown to start the session after "delayBeforeStart" seconds.
-     * When succeeding, the newly connected client receives an accept message
-     * and every other client is notified.
-     * If it doesn't the client is sent a denied connection message.
+     * Try to add a new player. If it is the first player in the session, start a
+     * countdown to start the session after "delayBeforeStart" seconds. When
+     * succeeding, the newly connected client receives an accept message and every
+     * other client is notified. If it doesn't the client is sent a denied
+     * connection message.
      */
     public boolean connect(String name, Connexion c) {
         if (addUser(name, c)) {
@@ -65,10 +68,9 @@ public class Session {
         return false;
     }
 
-
     /**
-     * Creates a thread that will begin after the amount of seconds defined in 
-     * "delayBeforeStart", which will then call the start() function to begin the 
+     * Creates a thread that will begin after the amount of seconds defined in
+     * "delayBeforeStart", which will then call the start() function to begin the
      * session
      */
     private void scheduleStart() {
@@ -84,9 +86,9 @@ public class Session {
     }
 
     /**
-     * Creates a thread that will keep running as long as the Session is in a 
-     * "ingame" phase and will call the tick() function "SERVER_TICKRATE" times 
-     * per second
+     * Creates a thread that will keep running as long as the Session is in a
+     * "ingame" phase and will call the tick() function "SERVER_TICKRATE" times per
+     * second
      */
     private void autoTick() {
         Runnable task = new Runnable() {
@@ -110,11 +112,10 @@ public class Session {
     }
 
     /**
-     * Start the session if the phase is currently "waiting".
-     * It then creates an Objectif, send a message to every client to
-     * notify the start of the session.
-     * Finally it calls autoTick() to send message to client regularly of the
-     * state of the game
+     * Start the session if the phase is currently "waiting". It then creates an
+     * Objectif, send a message to every client to notify the start of the session.
+     * Finally it calls autoTick() to send message to client regularly of the state
+     * of the game
      */
     public void start() {
         Random r = new Random();
@@ -123,24 +124,14 @@ public class Session {
                 // Start the game
                 this.phase = "ingame";
 
-                int nbObstacles = r.nextInt(10);
-                // int nbObstacles = 45;
-                for(int i=0; i<nbObstacles; i++){
+                // int nbObstacles = r.nextInt(10);
+                int nbObstacles = 45;
+                for (int i = 0; i < nbObstacles; i++) {
                     this.obstacles.add(new Obstacle());
                 }
 
-                synchronized(objectifLock){
-                    boolean placementOK = false; //Check that the objectif is not inside an obstacle
-                    while(!placementOK){
-                        this.objectif = new Objectif();
-                        placementOK = true;
-                        for(Obstacle o : this.obstacles){
-                            if(o.isInCollisionWith(this.objectif.getX(), this.objectif.getY(), this.objectif.getRadius())){
-                                placementOK = false;
-                                break;
-                            }
-                        }
-                    }
+                synchronized (objectifLock) {
+                    createObjectifToValidPosition();
                 }
 
             } else {
@@ -155,7 +146,7 @@ public class Session {
             DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
             for (Player p : players.values()) {
-                p.reset(); //TODO Make sure player not in a obstacle
+                resetToValidPosition(p);
                 i--;
                 Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
                 Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
@@ -164,15 +155,15 @@ public class Session {
                     coords += "|";
                 }
             }
-            synchronized(objectifLock){
+            synchronized (objectifLock) {
                 coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
             }
 
             i = obstacles.size();
-            for(Obstacle o : obstacles){
-                obstacles_coords += "X"+o.getX()+"Y"+o.getY();
+            for (Obstacle o : obstacles) {
+                obstacles_coords += "X" + o.getX() + "Y" + o.getY();
                 i--;
-                if(i > 0){
+                if (i > 0) {
                     obstacles_coords += "|";
                 }
             }
@@ -182,6 +173,7 @@ public class Session {
         }
         autoTick(); // Start a thread that will call tick once every SERVER_TICKRATE
     }
+
 
     /**
      * Function called every SERVER_TICKRATE to send a message with updated
@@ -230,7 +222,6 @@ public class Session {
                     }
                 }
             }
-            
         }
     }
 
@@ -241,7 +232,7 @@ public class Session {
         String scores = "";
         String coord = "";
         synchronized(objectifLock){
-            this.objectif = new Objectif();
+            createObjectifToValidPosition();
             coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
         }
 
@@ -390,6 +381,46 @@ public class Session {
 
         
         c.sendConnectionAccepted(this.phase, scores, coord, obstacles_coords);
+    }
+
+    private void resetToValidPosition(Player newplayer) {
+        boolean placementOK = false; // Check that the objectif is not inside an obstacle
+        while (!placementOK) {
+            newplayer.reset();
+            placementOK = true;
+            for (Obstacle o : this.obstacles) {
+                if (o.isInCollisionWith(newplayer)) {
+                    placementOK = false;
+                    System.out.println("RETRY");
+                    break;
+                }
+            }
+            if (placementOK) {
+                for (Player otherp : this.players.values()) {
+                    if (!newplayer.equals(otherp)) {
+                        if (newplayer.isInCollisionWith(otherp)) {
+                            placementOK = false;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    private void createObjectifToValidPosition() {
+        boolean placementOK = false; // Check that the objectif is not inside an obstacle
+        while (!placementOK) {
+            this.objectif = new Objectif();
+            placementOK = true;
+            for (Obstacle o : this.obstacles) {
+                if (o.isInCollisionWith(this.objectif.getX(), this.objectif.getY(), this.objectif.getRadius())) {
+                    placementOK = false;
+                    break;
+                }
+            }
+        }
     }
 
     /**

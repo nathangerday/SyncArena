@@ -116,7 +116,7 @@ class MultiplayerGame:
             self.session_state = "ingame"
             goalx, goaly = parse_coord(coord)
             self.arena.goal = Goal(goalx, goaly)
-
+            self.main_player.to_display = False # Wait to get coord before displaying
             for s in scores.split("|"):
                 [name, score] = s.split(":")
                 if(name in self.arena.players):

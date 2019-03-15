@@ -13,12 +13,13 @@ class Arena:
     def draw(self, window):
         """Dessine, sur la fenetre donnee, toutes les entites sur lesquelles l'arene a une reference
         """
+        #Draw obstacles
+        for o in self.obstacles:
+            x = int(o.x * self.h + self.h)
+            y = int((-o.y) * self.l + self.l)
+
+            o.draw(window, x, y)
         
-        #Draw players
-        for p in self.players.values():
-            x = p.pos[0] * self.h + self.h
-            y = (-p.pos[1]) * self.l + self.l
-            p.draw(window, x, y)
         
         #Draw Goal
         if(self.goal != None):
@@ -27,12 +28,11 @@ class Arena:
 
             self.goal.draw(window, x, y)
 
-        #Draw obstacles
-        for o in self.obstacles:
-            x = int(o.x * self.h + self.h)
-            y = int((-o.y) * self.l + self.l)
-
-            o.draw(window, x, y)
+        #Draw players
+        for p in self.players.values():
+            x = p.pos[0] * self.h + self.h
+            y = (-p.pos[1]) * self.l + self.l
+            p.draw(window, x, y)
 
         
     def update(self):
