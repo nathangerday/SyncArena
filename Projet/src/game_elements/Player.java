@@ -101,7 +101,7 @@ public class Player{
 
     public void inverseVector(){
         this.vectorx = -this.vectorx;
-        this.vectory = -this.vectorx;
+        this.vectory = -this.vectory;
     }
 
 

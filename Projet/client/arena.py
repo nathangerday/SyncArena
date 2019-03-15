@@ -16,8 +16,8 @@ class Arena:
         
         #Draw players
         for p in self.players.values():
-            x = p.pos[0] * self.h + self.h - p.sprite_size/2
-            y = (-p.pos[1]) * self.l + self.l - p.sprite_size/2
+            x = p.pos[0] * self.h + self.h
+            y = (-p.pos[1]) * self.l + self.l
             p.draw(window, x, y)
         
         #Draw Goal
@@ -50,4 +50,4 @@ class Arena:
                     if(p.isInCollisionWith(otherp)):
                         p.moveTo(oldX, oldY)
                         p.inverseVector()
-                        otherp.inverseVector() # TODO Potentiel problem, if both players do that, they cancel each other
+                        # otherp.inverseVector() # TODO Potentiel problem, if both players do that, they cancel each other

@@ -82,4 +82,5 @@ class Player:
 
     def draw(self, window, xwindow, ywindow):
         if(self.to_display):
-            window.blit(self.current_sprite, (xwindow, ywindow))
+            # pygame.draw.circle(window, (125,145,81), (int(xwindow), int(ywindow)), int(self.radius * pygame.display.get_surface().get_width()/2))
+            window.blit(self.current_sprite, (xwindow - self.sprite_size/2, ywindow- self.sprite_size/2))
