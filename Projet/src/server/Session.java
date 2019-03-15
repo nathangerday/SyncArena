@@ -35,7 +35,7 @@ public class Session {
             if (!players.containsKey(name)) {
                 Player newplayer = new Player(name);
                 resetToValidPosition(newplayer);
-                players.put(name, new Player(name));
+                players.put(name, newplayer);
                 connexions.put(name, c);
                 return true;
             }
@@ -53,19 +53,21 @@ public class Session {
      * connection message.
      */
     public boolean connect(String name, Connexion c) {
-        if (addUser(name, c)) {
-            synchronized (phaseLock) {
-                if (this.phase.equals("inactive")) {
-                    this.phase = "waiting";
-                    scheduleStart();
+    	synchronized (userLock) {
+    		if (addUser(name, c)) {
+                synchronized (phaseLock) {
+                    if (this.phase.equals("inactive")) {
+                        this.phase = "waiting";
+                        scheduleStart();
+                    }
                 }
+                connectionAccepted(c);
+                notifyOfNewPlayerConnection(name);
+                return true;
             }
-            connectionAccepted(c);
-            notifyOfNewPlayerConnection(name);
-            return true;
-        }
-        c.sendConnectionDenied();
-        return false;
+            c.sendConnectionDenied();
+            return false;	
+		}
     }
 
     /**
