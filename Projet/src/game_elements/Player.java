@@ -1,5 +1,6 @@
 package game_elements;
 
+import java.util.Collection;
 import java.util.Random;
 import constants.Constants;
 public class Player{
@@ -9,6 +10,9 @@ public class Player{
     private int score;
     private double direction;
     private double radius = Constants.VE_RADIUS;
+
+    private double oldX, oldY;
+    private boolean isInCollision = false;
 
     public Player(String username){
         this.username = username;
@@ -30,6 +34,8 @@ public class Player{
     }
 
     public void update(){
+        this.oldX = x;
+        this.oldY = y;
         //TODO Use delta time since last update for more precision
         double scale_to_client_rate =  Constants.REFRESH_TICKRATE / Constants.SERVER_TICKRATE;
         // this.x = Math.abs(this.x + 1 + ( this.vectorx * scale_to_client_rate ) ) %2 - 1;
@@ -99,6 +105,32 @@ public class Player{
     }
 
 
+    public void checkCollision(Collection<Player> players, Collection<Obstacle> obstacles){
+        for(Obstacle o : obstacles){
+            if(o.isInCollisionWith(this)){
+                this.isInCollision = true;
+                return;
+            }
+        }
+
+        for(Player otherp : players){
+            if(!otherp.equals(this)){
+                if(this.isInCollisionWith(otherp)){
+                    this.isInCollision = true;
+                    return;
+                }
+            }
+        }
+    }
+
+    public void reactToCollision(){
+        if(isInCollision){
+            this.moveTo(oldX, oldY);
+            this.inverseVector();
+            isInCollision = false;
+        }
+    }
+
     public boolean isInCollisionWith(Player p){
         return  Math.sqrt(Math.pow((this.x - p.getX()), 2) + Math.pow(this.y - p.getY(), 2))  <  (this.radius + p.getRadius());
     }
@@ -106,6 +138,8 @@ public class Player{
     public void reset(){
         this.x = (r.nextInt(200)/100.0) - 1;
         this.y = (r.nextInt(200)/100.0) - 1;
+        this.oldX = x;
+        this.oldY = y;
         this.score = 0;
         this.direction = r.nextFloat()*2*Math.PI;
         this.vectorx = 0;

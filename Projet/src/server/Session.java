@@ -195,33 +195,16 @@ public class Session {
                     int i = players.size();
                     DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
+                    // Checking collision in 3 steps in necessary to have a precise output (we don't want to check with a player which is not yet updated)
                     for (Player p : players.values()) {
-                        // System.out.println("Objectif : " + this.objectif.getX() +", "+ this.objectif.getY());
-                        // System.out.println("Player before : " + p.getX() +", "+p.getY());
-                        double oldX = p.getX();
-                        double oldY = p.getY();
                         p.update();
-                        for(Obstacle o : this.obstacles){
-                            if(o.isInCollisionWith(p)){
-                                p.moveTo(oldX, oldY);
-                                p.inverseVector();
-                                break;
-                            }
-                        }
-
-                        //TODO Problem : check collision with player which might not be updated, need to update every player THEN check collision, an idea would be that each player remember its own previous position, then we update every pos, then we check on every player whether we are in collision and stores it in a boolean (but without changing anything yet), then once every player has checked collision, we call something like reactToCollision on every player, that will check the boolean and react if it's true
-                        for(Player otherp : players.values()){
-                            if(!otherp.equals(p)){
-                                if(p.isInCollisionWith(otherp)){
-                                    p.moveTo(oldX, oldY);
-                                    p.inverseVector();
-                                    otherp.inverseVector(); //TODO Potentiel problem, if both players do that, they cancel each other (if todo above done, this shouldn't be necessary anymore)
-                                }
-                            }
-                        }
-                        //TODO Parcourir les joueurs aussi
-                        // System.out.println("Player after : " + p.getX() +", "+p.getY());
-                        // System.out.println("=====================================================");
+                    }
+                    for (Player p : players.values()){
+                        p.checkCollision(this.players.values(), this.obstacles);
+                    }
+                    for(Player p : players.values()){
+                        p.reactToCollision();
+                        
                         if(this.objectif.isCollectableBy(p)){
                             p.setScore(p.getScore() + 1);
                             if(p.getScore() >= Constants.WIN_CAP){
