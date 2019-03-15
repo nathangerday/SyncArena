@@ -12,12 +12,10 @@ public class Objectif{
         Random r = new Random();
         this.x = (r.nextInt(200)/100.0) - 1;
         this.y = (r.nextInt(200)/100.0) - 1;
-        this.radius = 0.05;
     }
     public Objectif(double x, double y){
         this.x = x;
         this.y = y;
-        this.radius = 0.05;
     }
 
     public Objectif(double x, double y, double radius){

@@ -1,8 +1,10 @@
 package server;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -12,6 +14,8 @@ import constants.Constants;
 public class Session {
     private Map<String, Player> players = new HashMap<>();
     private Map<String, Connexion> connexions = new HashMap<>();
+    private ArrayList<Obstacle> obstacles = new ArrayList<>();
+    
     private final Object userLock = new Object();
     private final Object phaseLock = new Object();
     private final Object objectifLock = new Object();
@@ -113,13 +117,32 @@ public class Session {
      * state of the game
      */
     public void start() {
+        Random r = new Random();
         synchronized (phaseLock) {
             if (this.phase.equals("waiting")) {
                 // Start the game
                 this.phase = "ingame";
-                synchronized(objectifLock){
-                    this.objectif = new Objectif();
+
+                int nbObstacles = r.nextInt(10);
+                // int nbObstacles = 45;
+                for(int i=0; i<nbObstacles; i++){
+                    this.obstacles.add(new Obstacle());
                 }
+
+                synchronized(objectifLock){
+                    boolean placementOK = false; //Check that the objectif is not inside an obstacle
+                    while(!placementOK){
+                        this.objectif = new Objectif();
+                        placementOK = true;
+                        for(Obstacle o : this.obstacles){
+                            if(o.isInCollisionWith(this.objectif.getX(), this.objectif.getY(), this.objectif.getRadius())){
+                                placementOK = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
             } else {
                 return;
             }
@@ -127,11 +150,12 @@ public class Session {
         synchronized (userLock) {
             String coords = "";
             String coord = "";
+            String obstacles_coords = "";
             int i = players.size();
             DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
             for (Player p : players.values()) {
-                p.reset();
+                p.reset(); //TODO Make sure player not in a obstacle
                 i--;
                 Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
                 Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
@@ -143,8 +167,17 @@ public class Session {
             synchronized(objectifLock){
                 coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
             }
+
+            i = obstacles.size();
+            for(Obstacle o : obstacles){
+                obstacles_coords += "X"+o.getX()+"Y"+o.getY();
+                i--;
+                if(i > 0){
+                    obstacles_coords += "|";
+                }
+            }
             for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
-                entry.getValue().sendStartSession(coords, coord);
+                entry.getValue().sendStartSession(coords, coord, obstacles_coords);
             }
         }
         autoTick(); // Start a thread that will call tick once every SERVER_TICKRATE
@@ -163,11 +196,32 @@ public class Session {
                     DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
                     for (Player p : players.values()) {
-                        System.out.println("Objectif : " + this.objectif.getX() +", "+ this.objectif.getY());
-                        System.out.println("Player before : " + p.getX() +", "+p.getY());
+                        // System.out.println("Objectif : " + this.objectif.getX() +", "+ this.objectif.getY());
+                        // System.out.println("Player before : " + p.getX() +", "+p.getY());
+                        double oldX = p.getX();
+                        double oldY = p.getY();
                         p.update();
-                        System.out.println("Player after : " + p.getX() +", "+p.getY());
-                        System.out.println("=====================================================");
+                        for(Obstacle o : this.obstacles){
+                            if(o.isInCollisionWith(p)){
+                                p.moveTo(oldX, oldY);
+                                p.inverseVector();
+                                break;
+                            }
+                        }
+
+                        //TODO Problem : check collision with player which might not be updated, need to update every player THEN check collision, an idea would be that each player remember its own previous position, then we update every pos, then we check on every player whether we are in collision and stores it in a boolean (but without changing anything yet), then once every player has checked collision, we call something like reactToCollision on every player, that will check the boolean and react if it's true
+                        for(Player otherp : players.values()){
+                            if(!otherp.equals(p)){
+                                if(p.isInCollisionWith(otherp)){
+                                    p.moveTo(oldX, oldY);
+                                    p.inverseVector();
+                                    otherp.inverseVector(); //TODO Potentiel problem, if both players do that, they cancel each other (if todo above done, this shouldn't be necessary anymore)
+                                }
+                            }
+                        }
+                        //TODO Parcourir les joueurs aussi
+                        // System.out.println("Player after : " + p.getX() +", "+p.getY());
+                        // System.out.println("=====================================================");
                         if(this.objectif.isCollectableBy(p)){
                             p.setScore(p.getScore() + 1);
                             if(p.getScore() >= Constants.WIN_CAP){
@@ -250,6 +304,7 @@ public class Session {
                             entry.getValue().sendEndSession(scores);
                         }
                         this.phase = "waiting";
+                        this.obstacles.clear();
                         scheduleStart();
                     }
                 }
@@ -323,12 +378,10 @@ public class Session {
     private void connectionAccepted(Connexion c){
         String scores = "";
         String coord = "";
+        String obstacles_coords = "";
         synchronized(userLock){
             synchronized(phaseLock){
-                if(!this.phase.equals("ingame")){
-                    scores = "";
-                    coord = "";
-                }else{
+                if(this.phase.equals("ingame")){
                     int i = players.size();
                     for(Player p : players.values()){
                         i--;
@@ -340,10 +393,20 @@ public class Session {
                     synchronized(objectifLock){
                         coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
                     }
+                    i = obstacles.size();
+                    for(Obstacle o : obstacles){
+                        obstacles_coords += "X"+o.getX()+"Y"+o.getY();
+                        i--;
+                        if(i > 0){
+                            obstacles_coords += "|";
+                        }
+                    }
                 }
             }
         }
-        c.sendConnectionAccepted(this.phase, scores, coord);
+
+        
+        c.sendConnectionAccepted(this.phase, scores, coord, obstacles_coords);
     }
 
     /**

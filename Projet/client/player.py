@@ -16,6 +16,7 @@ class Player:
         self.pos = pos
         self.direction = 0
         self.vector = (0.0, 0.0)
+        self.radius = VE_RADIUS
         self.score = 0
         self.original_sprite = pygame.image.load(path_to_sprite)
         self.original_sprite = pygame.transform.scale(self.original_sprite, (self.sprite_size, self.sprite_size)) # Original sprite which should never change
@@ -53,11 +54,19 @@ class Player:
     def moveTo(self, x, y):
         self.pos = (x, y)
 
+    def inverseVector(self):
+        self.vector = (-self.vector[0], -self.vector[1])
+
     def reset(self):
         self.vector = (0.0, 0.0)
         self.score = 0
         self.command_angle = 0
         self.command_thrust = 0
+
+    def isInCollisionWith(self, player):
+        distance = math.sqrt(math.pow(player.pos[0] - self.pos[0], 2) + math.pow(player.pos[1] - self.pos[1], 2))
+        return (distance < self.radius + player.radius)
+        
 
     def update(self):
         """Fonction a appele lorsque l'on veut mettre a jour l'entite avec les bonnes coordonnees / rotation

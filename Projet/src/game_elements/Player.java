@@ -8,6 +8,7 @@ public class Player{
     private double x, y, vectorx, vectory;
     private int score;
     private double direction;
+    private double radius = Constants.VE_RADIUS;
 
     public Player(String username){
         this.username = username;
@@ -64,6 +65,10 @@ public class Player{
         return this.y;
     }
 
+    public double getRadius(){
+        return this.radius;
+    }
+
     public double getVectorX(){
         return this.vectorx;
     }
@@ -86,6 +91,16 @@ public class Player{
     public void moveTo(double x, double y){
         this.x = x;
         this.y = y;
+    }
+
+    public void inverseVector(){
+        this.vectorx = -this.vectorx;
+        this.vectory = -this.vectorx;
+    }
+
+
+    public boolean isInCollisionWith(Player p){
+        return  Math.sqrt(Math.pow((this.x - p.getX()), 2) + Math.pow(this.y - p.getY(), 2))  <  (this.radius + p.getRadius());
     }
 
     public void reset(){

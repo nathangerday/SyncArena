@@ -127,8 +127,8 @@ public class Connexion extends Thread {
         this.out.flush();
     }
 
-    public void sendConnectionAccepted(String phase, String scores, String coord){
-        this.out.println("WELCOME/"+phase+"/"+scores+"/"+coord+"/");
+    public void sendConnectionAccepted(String phase, String scores, String coord, String obstacles_coords){
+        this.out.println("WELCOME/"+phase+"/"+scores+"/"+coord+"/"+obstacles_coords+"/");
         this.out.flush();
     }
 
@@ -142,8 +142,8 @@ public class Connexion extends Thread {
         this.out.flush();
     }
 
-    public void sendStartSession(String coords, String coord){
-        this.out.println("SESSION/"+coords+"/"+coord+"/");
+    public void sendStartSession(String coords, String coord, String obstacles_coords){
+        this.out.println("SESSION/"+coords+"/"+coord+"/"+obstacles_coords+"/");
         this.out.flush();
     }
 

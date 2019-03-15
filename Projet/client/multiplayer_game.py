@@ -9,6 +9,7 @@ from const import REFRESH_TICKRATE, HOST, PORT, WIN_CAP, SERVER_TICKRATE
 from logger import Logger
 from goal import Goal
 from score import Score
+from obstacle import Obstacle
 
 
 class MultiplayerGame:
@@ -73,7 +74,7 @@ class MultiplayerGame:
 
     def handle_server_responses(self):
         try:
-            data = self.socket.recv(1024, socket.MSG_DONTWAIT)
+            data = self.socket.recv(8192, socket.MSG_DONTWAIT)
         except BlockingIOError: # Nothing to read
             return
         
@@ -105,6 +106,8 @@ class MultiplayerGame:
         phase = cmd[1]
         scores = cmd[2]
         coord = cmd[3]
+        obs_coords = cmd[4]
+
         if(phase == "waiting"):
             self.logger.add_message("Waiting to start session")
             self.session_state = "waiting"
@@ -122,6 +125,11 @@ class MultiplayerGame:
                     new_player = Player("spaceship_sprite.png", name)
                     new_player.score = int(score)
                     self.arena.players[name] = new_player
+            
+            if(len(obs_coords) > 0):
+                for o in obs_coords.split("|"):
+                    pos = parse_coord(o)
+                    self.arena.obstacles.append(Obstacle(pos[0], pos[1]))
 
     def apply_command_denied(self, cmd):
         self.logger.add_message("Joining session failed")
@@ -141,13 +149,13 @@ class MultiplayerGame:
     def apply_command_session(self, cmd):
         coords = cmd[1]
         coord = cmd[2]
+        obs_coords = cmd[3]
 
         self.logger.add_message("Session starting !")
         players_coords = coords.split("|")
         for p in players_coords:
             [name, pos] = p.split(":")
             pos = parse_coord(pos)
-            print(pos)
             if(name in self.arena.players):
                 self.arena.players[name].reset()
                 self.arena.players[name].moveTo(pos[0], pos[1])
@@ -156,7 +164,14 @@ class MultiplayerGame:
                 self.arena.players[name] = Player("spaceship_sprite.png", name, pos, True)
         goalx, goaly = parse_coord(coord)
         self.arena.goal = Goal(goalx, goaly)
+        
+        if(len(obs_coords) > 0):
+            for o in obs_coords.split("|"):
+                pos = parse_coord(o)
+                self.arena.obstacles.append(Obstacle(pos[0], pos[1]))
+        
         self.session_state = "ingame"
+        
 
     def apply_command_winner(self, cmd):
         scores = cmd[1]
@@ -172,6 +187,7 @@ class MultiplayerGame:
         self.logger.add_message("A new game will restart soon")
         self.session_state = "waiting"
         self.arena.goal = None
+        self.arena.obstacles.clear()
 
         # Don't display other player if not ingame
         for p in self.arena.players.values():

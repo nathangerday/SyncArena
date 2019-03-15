@@ -10,4 +10,7 @@ public final class Constants{
     public static final double THRUSTIT = 0.002;
     public static final double OBJ_RADIUS = 0.05;
     public static final int WIN_CAP = 3;
+
+    public static final double VE_RADIUS = 0.04;
+    public static final double OB_RADIUS = 0.08;
 }
