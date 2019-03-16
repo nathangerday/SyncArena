@@ -10,6 +10,7 @@ from logger import Logger
 from goal import Goal
 from score import Score
 from obstacle import Obstacle
+from input_box import InputBox
 
 
 class MultiplayerGame:
@@ -18,6 +19,7 @@ class MultiplayerGame:
         self.client = client
         self.logger = Logger()
         self.score_displayer = Score(username)
+        self.inputbox = InputBox(300, 300)
         self.username = username
         self.is_socket_connected_to_server = False
         self.session_state = "nosession" # Indicate whether we not connected, requested connection or in a session
@@ -222,21 +224,25 @@ class MultiplayerGame:
 
 
     def handle_keyboard_input(self):
+        if(not self.inputbox.isWriting):
+            keys = pygame.key.get_pressed()
+            if(keys[pygame.K_q] or keys[pygame.K_LEFT]):
+                self.main_player.anticlock()
+            elif(keys[pygame.K_d] or keys[pygame.K_RIGHT]):
+                self.main_player.clock()
+                
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):
                 self.stop()
 
             if(event.type == pygame.KEYDOWN):
-                if(event.key == pygame.K_SPACE):
-                    self.main_player.thrust()
-                if(event.key == pygame.K_ESCAPE):
-                    self.stop()
+                if(not self.inputbox.isWriting):
+                    if(event.key == pygame.K_SPACE):
+                        self.main_player.thrust()
+                    if(event.key == pygame.K_ESCAPE):
+                        self.stop()
+                self.inputbox.handle_input_event(event)
 
-        keys = pygame.key.get_pressed()
-        if(keys[pygame.K_q] or keys[pygame.K_LEFT]):
-            self.main_player.anticlock()
-        elif(keys[pygame.K_d] or keys[pygame.K_RIGHT]):
-            self.main_player.clock()
 
 
     def enitities_update(self):
@@ -248,6 +254,7 @@ class MultiplayerGame:
         self.arena.draw(self.client.window) # Dessine toutes les entites
         self.logger.draw(self.client.window)
         self.score_displayer.draw(self.arena.players, self.client.window)
+        self.inputbox.draw(self.client.window)
         pygame.display.update() # Met a jour la fenetre
 
     def stop(self):

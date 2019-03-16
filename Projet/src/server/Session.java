@@ -126,6 +126,7 @@ public class Session {
                 // Start the game
                 this.phase = "ingame";
 
+                this.obstacles.clear();
                 // int nbObstacles = r.nextInt(10);
                 int nbObstacles = 45;
                 for (int i = 0; i < nbObstacles; i++) {
@@ -280,9 +281,9 @@ public class Session {
                             entry.getValue().sendEndSession(scores);
                         }
                         this.phase = "waiting";
-                        this.obstacles.clear();
                         scheduleStart();
                     }
+                    this.obstacles.clear();
                 }
             }
         }
