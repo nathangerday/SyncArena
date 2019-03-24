@@ -65,6 +65,17 @@ public class Connexion extends Thread {
                             int nb_thrust = Integer.valueOf(vals[2]);
                             session.newCom(this.username, angle, nb_thrust);
                         }
+                        break;
+                    case "ENVOI":
+                        if(this.isConnectedToSession){
+                            session.newMessage(this.username, commands[1]);
+                        }
+                        break;
+                    case "PENVOI":
+                        if(this.isConnectedToSession){
+                            session.newPrivateMessage(this.username, commands[1], commands[2]);
+                        }
+                        break;
                 }       
 
 
@@ -161,6 +172,15 @@ public class Connexion extends Thread {
         this.out.println("NEWOBJ/"+coord+"/"+scores+"/");
         this.out.flush();
     }
-    
+
+    public void sendNewMessage(String message){
+        this.out.println("RECEPTION/"+message+"/");
+        this.out.flush();
+    }
+
+    public void sendNewPrivateMessage(String message, String from){
+        this.out.println("PRECEPTION/"+message+"/"+from+"/");
+        this.out.flush();
+    }
 }
         

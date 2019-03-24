@@ -15,6 +15,6 @@ class Score:
                 color = (255, 215, 0)
             else:
                 color = (255, 0, 255)
-            surface = self.font.render(p.username + " : " + str(p.score), True, color)
+            surface = self.font.render(p.username + " : " + str(p.score), True, color, (0,0,0))
             window.blit(surface, (width - 100, ordinate_to_draw))
             ordinate_to_draw += 10*1.8

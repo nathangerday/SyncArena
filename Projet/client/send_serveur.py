@@ -10,3 +10,10 @@ def exitsession(socket, username):
 
 def newcom(socket, angle, nb_thrust):
     socket.sendall(("NEWCOM/A"+str(angle)+"T"+str(nb_thrust)+"/\n").encode())
+
+def sendmsg(socket, msg):
+    socket.sendall(("ENVOI/"+str(msg)+"/\n").encode())
+
+def sendpmsg(socket, user, msg):
+    socket.sendall(("PENVOI/"+str(user)+"/"+str(msg)+"/\n").encode())
+    

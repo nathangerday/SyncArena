@@ -19,7 +19,7 @@ class MultiplayerGame:
         self.client = client
         self.logger = Logger()
         self.score_displayer = Score(username)
-        self.inputbox = InputBox(300, 300)
+        self.inputbox = InputBox(5, self.client.window_width - 30, self.logger)
         self.username = username
         self.is_socket_connected_to_server = False
         self.session_state = "nosession" # Indicate whether we not connected, requested connection or in a session
@@ -55,6 +55,8 @@ class MultiplayerGame:
 
             self.logger.add_message("Connection successful.")
             self.is_socket_connected_to_server = True
+            
+            self.inputbox.socket = self.socket
         
         if(self.session_state == "nosession"):
             self.logger.add_message("Trying to join a session...")
@@ -82,7 +84,7 @@ class MultiplayerGame:
         
         commands = data.decode().split("\n")
         commands = [cmd.split("/") for cmd in commands]
-        print(commands)
+        # print(commands)
 
         #TODO Handle theses commands in another method
         for cmd in commands:
@@ -102,7 +104,10 @@ class MultiplayerGame:
                 self.apply_command_tick(cmd)
             elif(cmd[0] == "NEWOBJ"):
                 self.apply_command_newobj(cmd)
-
+            elif(cmd[0] == "RECEPTION"):
+                self.apply_command_reception(cmd)
+            elif(cmd[0] == "PRECEPTION"):
+                self.apply_command_preception(cmd)
 
     def apply_command_welcome(self, cmd):
         phase = cmd[1]
@@ -222,6 +227,14 @@ class MultiplayerGame:
         goalx, goaly = parse_coord(coord)
         self.arena.goal = Goal(goalx, goaly)
 
+    def apply_command_reception(self, cmd):
+        message = cmd[1]
+        self.logger.add_message(message, (255,0,0))
+
+    def apply_command_preception(self, cmd):
+        message = cmd[1]
+        user = cmd[2]
+        self.logger.add_message("From "+user+" : "+message, (255,105,180))
 
     def handle_keyboard_input(self):
         if(not self.inputbox.isWriting):
@@ -249,7 +262,6 @@ class MultiplayerGame:
         self.arena.update() # Updates every players in the arena including the main_player
 
     def draw_frame(self):
-        #TODO Optimisation : Effacer uniquement ce qui change
         self.client.window.fill((0, 0, 0)) # Efface tout ce qui est sur la fenetre
         self.arena.draw(self.client.window) # Dessine toutes les entites
         self.logger.draw(self.client.window)

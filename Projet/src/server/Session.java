@@ -322,6 +322,25 @@ public class Session {
         }
     }
 
+    public void newMessage(String from, String message){
+        synchronized(userLock){
+            for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
+                if(!entry.getKey().equals(from)){
+                    entry.getValue().sendNewMessage(message);
+                }
+            }
+        }
+    }   
+
+    public void newPrivateMessage(String from, String to, String message){
+        synchronized(userLock){
+            Connexion c  = connexions.get(to);
+            if(c != null){
+                c.sendNewPrivateMessage(message, from);       
+            }
+        }
+    }
+
 
     /**
      * Disconnect the given player from the session.
