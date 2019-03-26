@@ -237,12 +237,14 @@ class MultiplayerGame:
         self.logger.add_message("From "+user+" : "+message, (255,105,180))
 
     def handle_keyboard_input(self):
+        keys = pygame.key.get_pressed()
         if(not self.inputbox.isWriting):
-            keys = pygame.key.get_pressed()
             if(keys[pygame.K_q] or keys[pygame.K_LEFT]):
                 self.main_player.anticlock()
             elif(keys[pygame.K_d] or keys[pygame.K_RIGHT]):
                 self.main_player.clock()
+        else:
+            self.inputbox.handle_continuous_pressed_keys(keys)
                 
         for event in pygame.event.get():
             if(event.type == pygame.QUIT):

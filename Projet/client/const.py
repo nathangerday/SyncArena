@@ -1,7 +1,7 @@
 # ======= SAFE TO CHANGE =======
 HOST = "localhost"
 PORT = 45678
-TEST_DISPLAY_LENGTH = 8
+TEST_DISPLAY_LENGTH = 0
 REFRESH_TICKRATE = 60 # Must be much higher than server_tickrate
 SERVER_TICKRATE = 17
 
