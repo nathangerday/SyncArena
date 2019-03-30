@@ -11,6 +11,7 @@ from goal import Goal
 from score import Score
 from obstacle import Obstacle
 from input_box import InputBox
+from attack import Attack
 
 
 class MultiplayerGame:
@@ -66,7 +67,8 @@ class MultiplayerGame:
             # send_serveur.newpos(self.socket, self.main_player.pos)
         
             if(time.time() - self.last_newcom > 1 / SERVER_TICKRATE):
-                send_serveur.newcom(self.socket, self.main_player.command_angle, self.main_player.command_thrust)
+                send_serveur.newcom(self.socket, self.main_player.command_angle, self.main_player.command_thrust, self.main_player.hasShoot)
+                self.main_player.hasShoot = False
                 self.last_newcom = time.time()
 
                 # Commands sent, reset
@@ -102,6 +104,8 @@ class MultiplayerGame:
                 self.apply_command_winner(cmd)
             elif(cmd[0] == "TICK"):
                 self.apply_command_tick(cmd)
+            elif(cmd[0] == "TICK2"):
+                self.apply_command_tick2(cmd) 
             elif(cmd[0] == "NEWOBJ"):
                 self.apply_command_newobj(cmd)
             elif(cmd[0] == "RECEPTION"):
@@ -195,7 +199,7 @@ class MultiplayerGame:
         self.session_state = "waiting"
         self.arena.goal = None
         self.arena.obstacles.clear()
-
+        self.arena.attacks.clear()
         # Don't display other player if not ingame
         for p in self.arena.players.values():
             if(not p.username == self.username):
@@ -204,16 +208,25 @@ class MultiplayerGame:
 
     def apply_command_tick(self, cmd):
         coords = cmd[1]
-
+        self.arena.attacks.clear()
         players_coords = coords.split("|")
         for p in players_coords:
             [name, vals] = p.split(":")
-            pos,vector,direction = parse_coord(vals)
+            pos, vector, direction = parse_coord(vals)
             player = self.arena.players[name]
             player.moveTo(pos[0], pos[1])
             player.direction = direction
             player.vector = vector
             player.to_display = True
+
+    def apply_command_tick2(self, cmd):
+        self.apply_command_tick(cmd)
+
+        self.arena.attacks.clear()
+        coords = cmd[2]
+        for a in coords.split("|"):
+            pos = parse_coord(a)
+            self.arena.attacks.append(Attack(pos[0], pos[1], pos[2]))
 
 
     def apply_command_newobj(self, cmd):
@@ -252,6 +265,8 @@ class MultiplayerGame:
                 if(not self.inputbox.isWriting):
                     if(event.key == pygame.K_SPACE):
                         self.main_player.thrust()
+                    if(event.key == pygame.K_e):
+                        self.main_player.shoot()
                     if(event.key == pygame.K_ESCAPE):
                         self.stop()
                 self.inputbox.handle_input_event(event)
@@ -283,7 +298,6 @@ def parse_coord(coord):
         """
         vals = re.split("VX|VY|T", coord)
         pos = re.split("X|Y", vals[0])
-        
         if(len(vals) == 1): # No vector or direction in received coordinates
             return (float(pos[1]), float(pos[2]))
         elif(len(vals) == 4):

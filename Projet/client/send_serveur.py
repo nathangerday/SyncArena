@@ -8,8 +8,12 @@ def newpos(socket, pos):
 def exitsession(socket, username):
     socket.sendall("EXIT/"+str(username)+"/\n")
 
-def newcom(socket, angle, nb_thrust):
-    socket.sendall(("NEWCOM/A"+str(angle)+"T"+str(nb_thrust)+"/\n").encode())
+def newcom(socket, angle, nb_thrust, shoot):
+    # If to allow compatibily with servers which don't handle shoot
+    if(shoot):
+        socket.sendall(("NEWCOM2/A"+str(angle)+"T"+str(nb_thrust)+"S1/\n").encode())
+    else:
+        socket.sendall(("NEWCOM/A"+str(angle)+"T"+str(nb_thrust)+"/\n").encode())
 
 def sendmsg(socket, msg):
     socket.sendall(("ENVOI/"+str(msg)+"/\n").encode())

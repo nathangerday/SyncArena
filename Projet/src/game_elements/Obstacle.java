@@ -29,7 +29,7 @@ public class Obstacle{
     }
 
     public boolean isInCollisionWith(Player p){
-        return  Math.sqrt(Math.pow((x - p.getX()), 2) + Math.pow(y - p.getY(), 2))  <  (this.radius + p.getRadius());
+        return  isInCollisionWith(p.getX(), p.getY(), p.getRadius());
     }
     
     public boolean isInCollisionWith(double otherx, double othery, double otherradius){

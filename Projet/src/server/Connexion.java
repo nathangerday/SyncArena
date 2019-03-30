@@ -66,6 +66,15 @@ public class Connexion extends Thread {
                             session.newCom(this.username, angle, nb_thrust);
                         }
                         break;
+                    case "NEWCOM2":
+                        if(this.isConnectedToSession){
+                            String[] vals = commands[1].split("A|T|S");
+                            double angle = Double.valueOf(vals[1]);
+                            int nb_thrust = Integer.valueOf(vals[2]);
+                            int nb_shoot = Integer.valueOf(vals[3]);
+                            session.newCom2(this.username, angle, nb_thrust, nb_shoot);
+                        }
+                        break;
                     case "ENVOI":
                         if(this.isConnectedToSession){
                             session.newMessage(this.username, commands[1]);
@@ -166,6 +175,10 @@ public class Connexion extends Thread {
     public void sendTick(String vcoords){
         this.out.println("TICK/"+vcoords+"/");
         this.out.flush();
+    }
+
+    public void sendTick2(String vcoords, String attCoords){
+        this.out.println("TICK2/"+vcoords+"/"+attCoords+"/");
     }
 
     public void sendNewObjectif(String coord, String scores){

@@ -132,7 +132,18 @@ public class Player{
     }
 
     public boolean isInCollisionWith(Player p){
-        return  Math.sqrt(Math.pow((this.x - p.getX()), 2) + Math.pow(this.y - p.getY(), 2))  <  (this.radius + p.getRadius());
+        return  isInCollisionWith(p.getX(), p.getY(), p.getRadius());
+    }
+
+
+    public boolean isInCollisionWith(double otherx, double othery, double otherradius){
+        return  Math.sqrt(Math.pow((x - otherx), 2) + Math.pow(y - othery, 2))  <  (this.radius + otherradius);
+    }
+
+
+    public void reactToAttack(){
+        this.vectorx = 0;
+        this.vectory = 0;
     }
 
     public void reset(){

@@ -2,7 +2,11 @@ package server;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -15,10 +19,12 @@ public class Session {
     private Map<String, Player> players = new HashMap<>();
     private Map<String, Connexion> connexions = new HashMap<>();
     private ArrayList<Obstacle> obstacles = new ArrayList<>();
+    private Deque<Attack> attacks = new LinkedList<>();
     
     private final Object userLock = new Object();
     private final Object phaseLock = new Object();
     private final Object objectifLock = new Object();
+    private final Object attacksLock = new Object();
 
     private Objectif objectif = null;
     private String phase = "inactive";
@@ -125,8 +131,10 @@ public class Session {
             if (this.phase.equals("waiting")) {
                 // Start the game
                 this.phase = "ingame";
-
                 this.obstacles.clear();
+                synchronized(attacksLock){
+                    this.attacks.clear();
+                }
                 // int nbObstacles = r.nextInt(10);
                 int nbObstacles = 45;
                 for (int i = 0; i < nbObstacles; i++) {
@@ -187,6 +195,7 @@ public class Session {
             synchronized(phaseLock){
                 synchronized(objectifLock){
                     String vcoords = "";
+                    String attCoords = "";
                     int i = players.size();
                     DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
@@ -204,6 +213,7 @@ public class Session {
                             p.setScore(p.getScore() + 1);
                             if(p.getScore() >= Constants.WIN_CAP){
                                 endSession();
+                                return;
                             }else{
                                 changeObjectif();
                             }
@@ -220,8 +230,34 @@ public class Session {
                             vcoords += "|";
                         }
                     }
-                    for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
-                        entry.getValue().sendTick(vcoords);
+                    
+                    synchronized(attacksLock){
+                        for(Attack a : attacks){
+                            a.update();
+                            a.checkCollision(this.players.values(), this.obstacles);
+                        }
+                        Iterator<Attack> iter = attacks.iterator();
+                        while(iter.hasNext()){
+                            if(iter.next().toRemove()){
+                                iter.remove();
+                            }
+                        }
+                        i = attacks.size();
+                        for(Attack a : attacks){
+                            i--;
+                            attCoords += "X" + a.getX() + "Y" + a.getY() + "VX" + a.getVectorX() + "VY" + a.getVectorY() + "T" + a.getDirection();
+                            if(i > 0){
+                                attCoords += "|";
+                            }
+                        }
+                        for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
+                            if(attCoords.length() >  0){
+                                entry.getValue().sendTick2(vcoords, attCoords);
+                            }else{
+                                entry.getValue().sendTick(vcoords);
+                            }
+    
+                        }
                     }
                 }
             }
@@ -284,6 +320,9 @@ public class Session {
                         scheduleStart();
                     }
                     this.obstacles.clear();
+                    synchronized(this.attacksLock){
+                        this.attacks.clear();
+                    }
                 }
             }
         }
@@ -321,6 +360,22 @@ public class Session {
             p.receiveThrustCommand(nb_thrust);
         }
     }
+    public void newCom2(String user, double angle, int nb_thrust, int shoot){
+        synchronized(userLock){
+            Player p = this.players.get(user);
+            p.receiveAngleCommand(angle);
+            p.receiveThrustCommand(nb_thrust);
+            synchronized(attacksLock){
+                this.attacks.add(new Attack(p));
+                if(this.attacks.size() > Constants.MAX_SIMULTANEOUS_ATTACKS){
+                    this.attacks.removeFirst();
+                }
+            }
+        }
+    }
+
+
+
 
     public void newMessage(String from, String message){
         synchronized(userLock){
