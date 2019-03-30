@@ -1,4 +1,5 @@
 import pygame
+import time
 import send_serveur
 class InputBox:
 
@@ -10,6 +11,7 @@ class InputBox:
         self.isWriting = False
         self.logger = logger
         self.socket = None # Need to be set to be able to send messages
+        self.last_backspace_done = 0
 
     def handle_input_event(self, event):
         if(event.key == pygame.K_RETURN):
@@ -22,12 +24,17 @@ class InputBox:
                 return
         if(self.isWriting):
             if(event.key == pygame.K_BACKSPACE):
-                self.text = self.text[:-1]
+                pass
+                # self.text = self.text[:-1]
             elif(event.key == pygame.K_ESCAPE):
                 self.isWriting = False
             else:
                 self.text += event.unicode
 
+    def handle_continuous_pressed_keys(self, keys):
+        if(keys[pygame.K_BACKSPACE] and time.time() - self.last_backspace_done > 1 / 11):
+            self.text = self.text[:-1]
+            self.last_backspace_done = time.time()
 
     def draw(self, window):
         pygame.draw.rect(window, (255, 0, 0), (self.x, self.y, 200, 25), 1)

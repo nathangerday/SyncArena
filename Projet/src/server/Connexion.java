@@ -30,7 +30,14 @@ public class Connexion extends Thread {
         try {
             while (true) {
                 String[] commands;
-                commands = in.readLine().split("/");
+                
+                String received = in.readLine();
+                if(received != null) {
+                	commands = received.split("/");                	
+                }else {
+                	return;
+                }
+                	
                 // String tmp = in.readLine();
                 // System.out.println(tmp);
                 // commands = tmp.split("/");
@@ -99,7 +106,7 @@ public class Connexion extends Thread {
             try {
                 in.close();
                 out.close();
-                client.close();
+                client.close();                	
             }catch (IOException e) {
                 //TODO Do something
             }
