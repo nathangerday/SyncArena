@@ -21,3 +21,5 @@ def sendmsg(socket, msg):
 def sendpmsg(socket, user, msg):
     socket.sendall(("PENVOI/"+str(user)+"/"+str(msg)+"/\n").encode())
     
+def sendrace(socket):
+    socket.sendall("RACE/\n".encode())

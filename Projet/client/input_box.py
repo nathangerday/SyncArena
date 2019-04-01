@@ -52,6 +52,9 @@ class InputBox:
             msg = " ".join(words[2:])
             self.logger.add_message("To " + words[1] + " : " + msg, (255,105,180))
             send_serveur.sendpmsg(self.socket, words[1], msg)
+        elif(len(words) == 1 and words[0] == "/race"):
+            self.logger.add_message("The next session will be a race")
+            send_serveur.sendrace(self.socket)
         else:
             self.logger.add_message(self.text, (255,0,0))
             send_serveur.sendmsg(self.socket, self.text)

@@ -92,6 +92,11 @@ public class Connexion extends Thread {
                             session.newPrivateMessage(this.username, commands[1], commands[2]);
                         }
                         break;
+                    case "RACE":
+                        if(this.isConnectedToSession){
+                            session.createRace();
+                        }
+                        break;
                 }       
 
 

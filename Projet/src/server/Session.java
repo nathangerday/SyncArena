@@ -27,6 +27,7 @@ public class Session {
     private final Object attacksLock = new Object();
 
     private Objectif objectif = null;
+    private List<Objectif> race_objectives = null;
     private String phase = "inactive";
     
     private int delayBeforeStart = 10;
@@ -103,7 +104,7 @@ public class Session {
             public void run() {
                 while (true) {
                     synchronized (phaseLock) {
-                        if (!phase.equals("ingame")) {
+                        if (!phase.equals("ingame") && !phase.equals("ingame_race")) {
                             return;
                         }
                     }
@@ -128,49 +129,40 @@ public class Session {
     public void start() {
         Random r = new Random();
         synchronized (phaseLock) {
-            if (this.phase.equals("waiting")) {
-                // Start the game
-                this.phase = "ingame";
-                this.obstacles.clear();
-                synchronized(attacksLock){
-                    this.attacks.clear();
-                }
-                // int nbObstacles = r.nextInt(10);
-                int nbObstacles = 45;
-                for (int i = 0; i < nbObstacles; i++) {
-                    this.obstacles.add(new Obstacle());
-                }
-
-                synchronized (objectifLock) {
-                    createObjectifToValidPosition();
-                }
-
-            } else {
-                return;
+            this.obstacles.clear();
+            synchronized(attacksLock){
+                this.attacks.clear();
+            }
+            int nbObstacles = 45;
+            // int nbObstacles = r.nextInt(10);
+            for (int i = 0; i < nbObstacles; i++) {
+                this.obstacles.add(new Obstacle());
+            }
+            synchronized (objectifLock) {
+	            if (this.phase.equals("waiting")) {
+	                // Start the game
+	                this.phase = "ingame";
+	
+	                    this.objectif = createObjectifToValidPosition();
+	
+	            }else if(this.phase.equals("waiting_race")){
+	                this.phase = "ingame_race";
+	                this.race_objectives = new ArrayList<Objectif>();
+	                for(int i = 0; i < Constants.WIN_CAP; i++){
+	                    this.race_objectives.add(createObjectifToValidPosition());
+	                }
+	
+	            } else {
+	                return;
+	            }
             }
         }
         synchronized (userLock) {
             String coords = "";
             String coord = "";
             String obstacles_coords = "";
-            int i = players.size();
             DecimalFormat sixdecimals = new DecimalFormat("#.######");
-
-            for (Player p : players.values()) {
-                resetToValidPosition(p);
-                i--;
-                Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-                Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-                coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
-                if (i > 0) {
-                    coords += "|";
-                }
-            }
-            synchronized (objectifLock) {
-                coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
-            }
-
-            i = obstacles.size();
+            int i = obstacles.size();
             for (Obstacle o : obstacles) {
                 obstacles_coords += "X" + o.getX() + "Y" + o.getY();
                 i--;
@@ -178,8 +170,31 @@ public class Session {
                     obstacles_coords += "|";
                 }
             }
-            for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
-                entry.getValue().sendStartSession(coords, coord, obstacles_coords);
+            
+            synchronized (objectifLock) {
+                i = players.size();
+                for (Player p : players.values()) {
+                    resetToValidPosition(p);
+                    i--;
+                    Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
+                    Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
+                    coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
+                    if (i > 0) {
+                        coords += "|";
+                    }
+                }
+                for (Player p : players.values()){
+                    if(this.phase.equals("ingame")){
+                        coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
+                    }else if(this.phase.equals("ingame_race")){
+                        coord = "X" + this.race_objectives.get(p.getScore()).getX() + "Y" + race_objectives.get(p.getScore()).getY();
+                        if(p.getScore() < Constants.WIN_CAP - 1){
+                            coord += "|";
+                            coord += "X" + this.race_objectives.get(p.getScore()+1).getX() + "Y" + race_objectives.get(p.getScore()+1).getY();
+                        }
+                    }
+                    connexions.get(p.getUsername()).sendStartSession(coords, coord, obstacles_coords);
+                }
             }
         }
         autoTick(); // Start a thread that will call tick once every SERVER_TICKRATE
@@ -209,7 +224,14 @@ public class Session {
                     for(Player p : players.values()){
                         p.reactToCollision();
                         
-                        if(this.objectif.isCollectableBy(p)){
+                        boolean isOnObjectif = false;
+                        if(this.phase.equals("ingame")){
+                            isOnObjectif = this.objectif.isCollectableBy(p);
+                        }else if(this.phase.equals("ingame_race")){
+                            isOnObjectif = this.race_objectives.get(p.getScore()).isCollectableBy(p);
+                        }
+
+                        if(isOnObjectif){
                             p.setScore(p.getScore() + 1);
                             if(p.getScore() >= Constants.WIN_CAP){
                                 endSession();
@@ -270,22 +292,32 @@ public class Session {
     public void changeObjectif(){
         String scores = "";
         String coord = "";
-        synchronized(objectifLock){
-            createObjectifToValidPosition();
-            coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
-        }
-
         synchronized(userLock){
-            int i = players.size();
-            for(Player p : players.values()){
-                i--;
-                scores += p.getUsername() + ":" + p.getScore();
-                if(i>0){
-                    scores += "|";
+            synchronized(objectifLock){
+                
+                
+                int i = players.size();
+                for(Player player : players.values()){
+                    i--;
+                    scores += player.getUsername() + ":" + player.getScore();
+                    if(i>0){
+                        scores += "|";
+                    }
                 }
-            }
-            for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
-                entry.getValue().sendNewObjectif(coord, scores);
+
+                for(Player player : players.values()){
+                    if(this.phase.equals("ingame")){
+                        this.objectif = createObjectifToValidPosition();
+                        coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                    }else if(this.phase.equals("ingame_race")){
+                        coord = "X" + this.race_objectives.get(player.getScore()).getX() + "Y" + race_objectives.get(player.getScore()).getY();
+                        if(player.getScore() < Constants.WIN_CAP - 1){
+                            coord += "|";
+                            coord += "X" + this.race_objectives.get(player.getScore()+1).getX() + "Y" + race_objectives.get(player.getScore()+1).getY();
+                        }
+                    }
+                    connexions.get(player.getUsername()).sendNewObjectif(coord, scores);
+                }
             }
         }
         
@@ -396,6 +428,14 @@ public class Session {
         }
     }
 
+    public void createRace(){
+        synchronized(phaseLock){
+            if(this.phase.equals("waiting")){
+                this.phase = "waiting_race";
+            }
+        }
+    }
+
 
     /**
      * Disconnect the given player from the session.
@@ -468,7 +508,6 @@ public class Session {
             for (Obstacle o : this.obstacles) {
                 if (o.isInCollisionWith(newplayer)) {
                     placementOK = false;
-                    System.out.println("RETRY");
                     break;
                 }
             }
@@ -486,18 +525,21 @@ public class Session {
     }
 
 
-    private void createObjectifToValidPosition() {
+    private Objectif createObjectifToValidPosition() {
         boolean placementOK = false; // Check that the objectif is not inside an obstacle
+        Objectif tmp_objectif = null;
         while (!placementOK) {
-            this.objectif = new Objectif();
+            tmp_objectif = new Objectif();
             placementOK = true;
             for (Obstacle o : this.obstacles) {
-                if (o.isInCollisionWith(this.objectif.getX(), this.objectif.getY(), this.objectif.getRadius())) {
+                if (o.isInCollisionWith(tmp_objectif.getX(), tmp_objectif.getY(), tmp_objectif.getRadius())) {
                     placementOK = false;
+                    System.out.println("RETRY");
                     break;
                 }
             }
         }
+        return tmp_objectif;
     }
 
     /**
