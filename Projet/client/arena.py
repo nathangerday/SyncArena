@@ -8,6 +8,7 @@ class Arena:
         self.l = window_width / 2
         self.players = {}
         self.goal = None
+        self.next_goal = None
         self.obstacles = []
         self.attacks = []
 
@@ -28,6 +29,13 @@ class Arena:
             y = int((-self.goal.y) * self.l + self.l)
 
             self.goal.draw(window, x, y)
+
+        #Draw next goal (only if in race mode)
+        if(self.next_goal != None):
+            x = int(self.next_goal.x * self.h + self.h)
+            y = int((-self.next_goal.y) * self.l + self.l)
+
+            self.next_goal.draw(window, x, y)
 
         #Draw players
         for p in self.players.values():

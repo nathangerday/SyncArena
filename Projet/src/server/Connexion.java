@@ -48,6 +48,7 @@ public class Connexion extends Thread {
                     case "CONNECT":
                         //TODO Maybe Check only char between a - z
                         commands[1] = commands[1].toLowerCase();
+                        this.username = commands[1];
                         connect(commands);
                         break;
                     case "EXIT":
@@ -120,6 +121,10 @@ public class Connexion extends Thread {
         }
     }
 
+
+    public String getUsername(){
+        return this.username;
+    }
 
     private void connect(String commands[]){
         if(!this.isConnectedToSession && commands[1].length() > 0){

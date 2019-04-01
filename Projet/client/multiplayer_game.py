@@ -122,10 +122,16 @@ class MultiplayerGame:
         if(phase == "waiting"):
             self.logger.add_message("Waiting to start session")
             self.session_state = "waiting"
-        elif(phase == "ingame"):
+        elif(phase == "ingame" or phase == "ingame_race"):
             self.logger.add_message("Joining a game")   
             self.session_state = "ingame"
-            goalx, goaly = parse_coord(coord)
+            goals_coord = coord.split("|")
+            goalx, goaly = parse_coord(goals_coord[0])
+            if(len(goals_coord) == 2):
+                nextgoalx, nextgoaly = parse_coord(goals_coord[1])
+                self.arena.next_goal = Goal(nextgoalx, nextgoaly, True)
+            else:
+                self.arena.next_goal = None
             self.arena.goal = Goal(goalx, goaly)
             self.main_player.to_display = False # Wait to get coord before displaying
             for s in scores.split("|"):
@@ -173,7 +179,12 @@ class MultiplayerGame:
                 self.arena.players[name].to_display = True
             else:
                 self.arena.players[name] = Player("spaceship_sprite.png", name, pos, True)
-        goalx, goaly = parse_coord(coord)
+        goals_coord = coord.split("|")
+        goalx, goaly = parse_coord(goals_coord[0])
+        if(len(goals_coord) == 2):
+            nextgoalx, nextgoaly = parse_coord(goals_coord[1])
+            self.arena.next_goal = Goal(nextgoalx, nextgoaly, True)
+
         self.arena.goal = Goal(goalx, goaly)
         
         if(len(obs_coords) > 0):
@@ -237,7 +248,13 @@ class MultiplayerGame:
             [name, score] = s.split(":")
             self.arena.players[name].score = int(score)
 
-        goalx, goaly = parse_coord(coord)
+        goals_coord = coord.split("|")
+        goalx, goaly = parse_coord(goals_coord[0])
+        if(len(goals_coord) == 2):
+            nextgoalx, nextgoaly = parse_coord(goals_coord[1])
+            self.arena.next_goal = Goal(nextgoalx, nextgoaly, True)
+        else:
+            self.arena.next_goal = None
         self.arena.goal = Goal(goalx, goaly)
 
     def apply_command_reception(self, cmd):

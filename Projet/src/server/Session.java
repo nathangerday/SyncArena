@@ -332,7 +332,7 @@ public class Session {
     public void endSession(){
         synchronized(userLock){
             synchronized(phaseLock){
-                if(this.phase.equals("ingame")){
+                if(this.phase.equals("ingame") || this.phase.equals("ingame_race")){
                     if(this.players.size() == 0){
                         this.phase = "inactive";
                     }else{
@@ -472,7 +472,7 @@ public class Session {
         String obstacles_coords = "";
         synchronized(userLock){
             synchronized(phaseLock){
-                if(this.phase.equals("ingame")){
+                if(this.phase.equals("ingame") || this.phase.equals("ingame_race")){
                     int i = players.size();
                     for(Player p : players.values()){
                         i--;
@@ -482,7 +482,21 @@ public class Session {
                         }
                     }
                     synchronized(objectifLock){
-                        coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                        if(this.phase.equals("ingame")){
+                            coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                        }
+                        else if(this.phase.equals("ingame_race")){
+                            Player player = players.get(c.getUsername());
+                            System.out.println(c.getUsername());
+                            if(player == null){
+                                System.out.println("JE SUIS NULL");
+                            }
+                            coord = "X" + this.race_objectives.get(player.getScore()).getX() + "Y" + race_objectives.get(player.getScore()).getY();
+                            if(player.getScore() < Constants.WIN_CAP - 1){
+                                coord += "|";
+                                coord += "X" + this.race_objectives.get(player.getScore()+1).getX() + "Y" + race_objectives.get(player.getScore()+1).getY();
+                            }
+                        }
                     }
                     i = obstacles.size();
                     for(Obstacle o : obstacles){
