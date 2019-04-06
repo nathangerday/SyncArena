@@ -15,6 +15,12 @@ class Arena:
     def draw(self, window):
         """Dessine, sur la fenetre donnee, toutes les entites sur lesquelles l'arene a une reference
         """
+        #Draw attacks
+        for a in self.attacks:
+            x = int(a.pos[0] * self.h + self.h)
+            y = int((-a.pos[1]) * self.l + self.l)
+            a.draw(window, x, y)
+
         #Draw obstacles
         for o in self.obstacles:
             x = int(o.x * self.h + self.h)
@@ -43,14 +49,13 @@ class Arena:
             y = (-p.pos[1]) * self.l + self.l
             p.draw(window, x, y)
 
-        #Draw attacks
-        for a in self.attacks:
-            x = int(a.pos[0] * self.h + self.h)
-            y = int((-a.pos[1]) * self.l + self.l)
-            a.draw(window, x, y)
+       
 
         
     def update(self):
+        for p in self.attacks:
+            p.update()
+
         for p in self.players.values():
             oldX = p.pos[0]
             oldY = p.pos[1]

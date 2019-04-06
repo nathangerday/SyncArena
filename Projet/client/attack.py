@@ -8,8 +8,10 @@ class Attack:
         self.direction = direction
 
 
-    # TODO Update
-
+    def update(self):
+        newx = (self.pos[0] + 1.0 + self.vector[0]) % 2 - 1 
+        newy = (self.pos[1] + 1.0 + self.vector[1]) % 2 - 1
+        self.pos = (newx, newy)
 
 
     def draw(self, window, xwindow, ywindow):

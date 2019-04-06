@@ -75,8 +75,7 @@ class Player:
     def update(self):
         """Fonction a appele lorsque l'on veut mettre a jour l'entite avec les bonnes coordonnees / rotation
         """
-
-        #TODO Modulo on float not precise, possibly use Decimal, see https://stackoverflow.com/questions/20830067/remainder-on-float-in-python?lq=1
+        
         newx = (self.pos[0] + 1.0 + self.vector[0]) % 2 - 1 
         newy = (self.pos[1] + 1.0 + self.vector[1]) % 2 - 1
 
