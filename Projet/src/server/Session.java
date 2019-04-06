@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import game_elements.*;
+import game_elements.Attack;
 import constants.Constants;
 
 public class Session {
@@ -304,12 +305,12 @@ public class Session {
                         scores += "|";
                     }
                 }
-
+                if(this.phase.equals("ingame")){
+                    this.objectif = createObjectifToValidPosition();
+                    coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                }
                 for(Player player : players.values()){
-                    if(this.phase.equals("ingame")){
-                        this.objectif = createObjectifToValidPosition();
-                        coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
-                    }else if(this.phase.equals("ingame_race")){
+                   if(this.phase.equals("ingame_race")){
                         coord = "X" + this.race_objectives.get(player.getScore()).getX() + "Y" + race_objectives.get(player.getScore()).getY();
                         if(player.getScore() < Constants.WIN_CAP - 1){
                             coord += "|";
