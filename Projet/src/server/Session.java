@@ -549,7 +549,6 @@ public class Session {
             for (Obstacle o : this.obstacles) {
                 if (o.isInCollisionWith(tmp_objectif.getX(), tmp_objectif.getY(), tmp_objectif.getRadius())) {
                     placementOK = false;
-                    System.out.println("RETRY");
                     break;
                 }
             }

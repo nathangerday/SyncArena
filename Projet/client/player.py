@@ -75,7 +75,7 @@ class Player:
     def update(self):
         """Fonction a appele lorsque l'on veut mettre a jour l'entite avec les bonnes coordonnees / rotation
         """
-        
+
         newx = (self.pos[0] + 1.0 + self.vector[0]) % 2 - 1 
         newy = (self.pos[1] + 1.0 + self.vector[1]) % 2 - 1
 
