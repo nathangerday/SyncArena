@@ -15,6 +15,8 @@ public final class Constants{
     public static final double SHOOT_SPEED = 0.01;
     public static final int MAX_SIMULTANEOUS_ATTACKS = 30;
 
+
+    public static final int NB_OBSTACLES = 15;
     public static final double VE_RADIUS = 0.04;
     public static final double OB_RADIUS = 0.08;
 }

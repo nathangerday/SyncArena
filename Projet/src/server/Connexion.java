@@ -57,15 +57,15 @@ public class Connexion extends Thread {
                             disconnect();
                         }
                         break;
-                    case "NEWPOS":
-                       //TODO Partie B : Il ne devrait plus recevoir de newpos ( a verifier )
-                        if(this.isConnectedToSession){
-                            String[] vals = commands[1].split("X|Y");
-                            double x = Double.valueOf(vals[1]);
-                            double y = Double.valueOf(vals[2]);
-                            session.changePos(this.username, x, y);
-                        }
-                        break;
+                    ////Shouldn't happen since Part B
+                    // case "NEWPOS":
+                    //     if(this.isConnectedToSession){
+                    //         String[] vals = commands[1].split("X|Y");
+                    //         double x = Double.valueOf(vals[1]);
+                    //         double y = Double.valueOf(vals[2]);
+                    //         session.changePos(this.username, x, y);
+                    //     }
+                    //     break;
                     case "NEWCOM":
                         if(this.isConnectedToSession){
                             String[] vals = commands[1].split("A|T");

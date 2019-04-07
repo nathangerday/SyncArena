@@ -1,5 +1,6 @@
 package game_elements;
 
+import java.util.List;
 import java.util.Random;
 import java.lang.Math;
 import constants.Constants;
@@ -7,11 +8,11 @@ import constants.Constants;
 public class Objectif{
     private double x, y;
     private double radius = Constants.OBJ_RADIUS;
+    private Random r = new Random();
+
 
     public Objectif(){
-        Random r = new Random();
-        this.x = (r.nextInt(200)/100.0) - 1;
-        this.y = (r.nextInt(200)/100.0) - 1;
+        moveToRandomPos();
     }
     public Objectif(double x, double y){
         this.x = x;
@@ -24,6 +25,20 @@ public class Objectif{
         this.radius = radius;
     }
 
+    public Objectif(List<Obstacle> obstacles){
+        boolean placementOK = false; // Check that the objectif is not inside an obstacle
+        while (!placementOK) {
+            moveToRandomPos();
+            placementOK = true;
+            for (Obstacle o : obstacles) {
+                if (o.isInCollisionWith(getX(), getY(), getRadius())) {
+                    placementOK = false;
+                    break;
+                }
+            }
+        }
+    }
+
     public double getX(){
         return this.x;
     }
@@ -31,12 +46,17 @@ public class Objectif{
     public double getY(){
         return this.y;
     }
-
+    
     public double getRadius(){
         return this.radius;
     }
 
     public boolean isCollectableBy(Player p){
         return  Math.sqrt(Math.pow((x - p.getX()), 2) + Math.pow(y - p.getY(), 2))   < this.radius;
+    }
+
+    private void moveToRandomPos(){
+        this.x = (r.nextInt(200)/100.0) - 1;
+        this.y = (r.nextInt(200)/100.0) - 1;
     }
 }

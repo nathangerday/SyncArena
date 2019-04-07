@@ -1,6 +1,5 @@
 package server;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -8,7 +7,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -33,7 +31,6 @@ public class Session {
     
     private int delayBeforeStart = 10;
 
-
     /**
      * Creates the player associated with the given username if 
      * it is not already known and save the reference to the Connexion
@@ -50,8 +47,6 @@ public class Session {
             return false;
         }
     }
-
-    
 
     /**
      * Try to add a new player. If it is the first player in the session, start a
@@ -70,7 +65,14 @@ public class Session {
                     }
                 }
                 connectionAccepted(c);
-                notifyOfNewPlayerConnection(name);
+                synchronized(userLock){
+                    for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
+                        if(entry.getKey().equals(name)){
+                            continue;
+                        }
+                        entry.getValue().sendNewPlayer(name);
+                    }
+                }
                 return true;
             }
             c.sendConnectionDenied();
@@ -85,13 +87,11 @@ public class Session {
      */
     private void scheduleStart() {
         ScheduledExecutorService sch = Executors.newSingleThreadScheduledExecutor();
-
         Runnable task = new Runnable() {
             public void run() {
                 start();
             }
         };
-
         sch.schedule(task, delayBeforeStart, TimeUnit.SECONDS);
     }
 
@@ -128,72 +128,39 @@ public class Session {
      * of the game
      */
     public void start() {
-        Random r = new Random();
         synchronized (phaseLock) {
             this.obstacles.clear();
             synchronized(attacksLock){
                 this.attacks.clear();
             }
-            int nbObstacles = 45;
-            // int nbObstacles = r.nextInt(10);
+            int nbObstacles = Constants.NB_OBSTACLES;
             for (int i = 0; i < nbObstacles; i++) {
                 this.obstacles.add(new Obstacle());
             }
             synchronized (objectifLock) {
 	            if (this.phase.equals("waiting")) {
-	                // Start the game
 	                this.phase = "ingame";
-	
-	                    this.objectif = createObjectifToValidPosition();
-	
+                    this.objectif = new Objectif(obstacles);
 	            }else if(this.phase.equals("waiting_race")){
 	                this.phase = "ingame_race";
 	                this.race_objectives = new ArrayList<Objectif>();
 	                for(int i = 0; i < Constants.WIN_CAP; i++){
-	                    this.race_objectives.add(createObjectifToValidPosition());
+	                    this.race_objectives.add(new Objectif(obstacles));
 	                }
-	
 	            } else {
 	                return;
 	            }
             }
         }
         synchronized (userLock) {
-            String coords = "";
-            String coord = "";
-            String obstacles_coords = "";
-            DecimalFormat sixdecimals = new DecimalFormat("#.######");
-            int i = obstacles.size();
-            for (Obstacle o : obstacles) {
-                obstacles_coords += "X" + o.getX() + "Y" + o.getY();
-                i--;
-                if (i > 0) {
-                    obstacles_coords += "|";
-                }
+            for (Player p : players.values()) {
+                resetToValidPosition(p);
             }
-            
+            String coords = ProtocolManager.createPlayerCoords(players);
+            String obstacles_coords = ProtocolManager.createObstaclesString(obstacles);
             synchronized (objectifLock) {
-                i = players.size();
-                for (Player p : players.values()) {
-                    resetToValidPosition(p);
-                    i--;
-                    Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-                    Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-                    coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
-                    if (i > 0) {
-                        coords += "|";
-                    }
-                }
                 for (Player p : players.values()){
-                    if(this.phase.equals("ingame")){
-                        coord = "X" + this.objectif.getX() + "Y" + this.objectif.getY();
-                    }else if(this.phase.equals("ingame_race")){
-                        coord = "X" + this.race_objectives.get(p.getScore()).getX() + "Y" + race_objectives.get(p.getScore()).getY();
-                        if(p.getScore() < Constants.WIN_CAP - 1){
-                            coord += "|";
-                            coord += "X" + this.race_objectives.get(p.getScore()+1).getX() + "Y" + race_objectives.get(p.getScore()+1).getY();
-                        }
-                    }
+                    String coord = ProtocolManager.createObjectivesString(phase, objectif, race_objectives, p);
                     connexions.get(p.getUsername()).sendStartSession(coords, coord, obstacles_coords);
                 }
             }
@@ -210,10 +177,6 @@ public class Session {
         synchronized(userLock){
             synchronized(phaseLock){
                 synchronized(objectifLock){
-                    String vcoords = "";
-                    String attCoords = "";
-                    int i = players.size();
-                    DecimalFormat sixdecimals = new DecimalFormat("#.######");
 
                     // Checking collision in 3 steps in necessary to have a precise output (we don't want to check with a player which is not yet updated)
                     for (Player p : players.values()) {
@@ -241,18 +204,9 @@ public class Session {
                                 changeObjectif();
                             }
                         }
-                        i--;
-                        Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-                        Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-                        Double vectorxformat = Double.valueOf(sixdecimals.format(p.getVectorX()));
-                        Double vectoryformat = Double.valueOf(sixdecimals.format(p.getVectorY()));
-                        Double directionformat = Double.valueOf(sixdecimals.format(p.getDirection()));
-                        vcoords += p.getUsername() + ":X" + xformat + "Y" + yformat + "VX" + vectorxformat + "VY" + vectoryformat + "T" + directionformat;
-
-                        if (i > 0) {
-                            vcoords += "|";
-                        }
                     }
+
+                    String vcoords = ProtocolManager.createPlayerVCoords(players);
                     
                     synchronized(attacksLock){
                         for(Attack a : attacks){
@@ -260,19 +214,13 @@ public class Session {
                             a.checkCollision(this.players.values(), this.obstacles);
                         }
                         Iterator<Attack> iter = attacks.iterator();
+
                         while(iter.hasNext()){
                             if(iter.next().toRemove()){
                                 iter.remove();
                             }
                         }
-                        i = attacks.size();
-                        for(Attack a : attacks){
-                            i--;
-                            attCoords += "X" + a.getX() + "Y" + a.getY() + "VX" + a.getVectorX() + "VY" + a.getVectorY() + "T" + a.getDirection();
-                            if(i > 0){
-                                attCoords += "|";
-                            }
-                        }
+                        String attCoords = ProtocolManager.createAttackString(attacks);
                         for (Map.Entry<String, Connexion> entry : connexions.entrySet()) {
                             if(attCoords.length() >  0){
                                 entry.getValue().sendTick2(vcoords, attCoords);
@@ -291,32 +239,14 @@ public class Session {
      * Changes the current objectif and send a message to every client.
      */
     public void changeObjectif(){
-        String scores = "";
-        String coord = "";
         synchronized(userLock){
             synchronized(objectifLock){
-                
-                
-                int i = players.size();
-                for(Player player : players.values()){
-                    i--;
-                    scores += player.getUsername() + ":" + player.getScore();
-                    if(i>0){
-                        scores += "|";
-                    }
-                }
+                String scores = ProtocolManager.createScoresString(players);
                 if(this.phase.equals("ingame")){
-                    this.objectif = createObjectifToValidPosition();
-                    coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
+                    this.objectif = new Objectif(obstacles);
                 }
                 for(Player player : players.values()){
-                   if(this.phase.equals("ingame_race")){
-                        coord = "X" + this.race_objectives.get(player.getScore()).getX() + "Y" + race_objectives.get(player.getScore()).getY();
-                        if(player.getScore() < Constants.WIN_CAP - 1){
-                            coord += "|";
-                            coord += "X" + this.race_objectives.get(player.getScore()+1).getX() + "Y" + race_objectives.get(player.getScore()+1).getY();
-                        }
-                    }
+                    String coord = ProtocolManager.createObjectivesString(phase, objectif, race_objectives, player);
                     connexions.get(player.getUsername()).sendNewObjectif(coord, scores);
                 }
             }
@@ -337,15 +267,7 @@ public class Session {
                     if(this.players.size() == 0){
                         this.phase = "inactive";
                     }else{
-                        String scores = "";
-                        int i = players.size();
-                        for(Player p : players.values()){
-                            i--;
-                            scores += p.getUsername() + ":" + p.getScore();
-                            if(i>0){
-                                scores += "|";
-                            }
-                        }
+                        String scores = ProtocolManager.createScoresString(players);
                         for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
                             entry.getValue().sendEndSession(scores);
                         }
@@ -360,31 +282,6 @@ public class Session {
             }
         }
     }
-
-    /**
-     * Changes the current pos of the given player and checks whether he can collect the Objectif
-     */
-    public void changePos(String user, double x, double y){
-        synchronized(userLock){
-            synchronized(phaseLock){
-                synchronized(objectifLock){
-                    Player player = this.players.get(user);
-                    player.moveTo(x, y);
-
-                    // ==== Partie A ====
-                    // if(this.objectif.isCollectableBy(player)){
-                    //     player.setScore(player.getScore() + 1);
-                    //     if(player.getScore() >= Constants.WIN_CAP){
-                    //         endSession();
-                    //     }else{
-                    //         changeObjectif();
-                    //     }
-                    // }
-                }
-            }
-        }
-    }
-
 
     public void newCom(String user, double angle, int nb_thrust){
         synchronized(userLock){
@@ -406,9 +303,6 @@ public class Session {
             }
         }
     }
-
-
-
 
     public void newMessage(String from, String message){
         synchronized(userLock){
@@ -437,7 +331,6 @@ public class Session {
         }
     }
 
-
     /**
      * Disconnect the given player from the session.
      * If it was the last player, terminate the current session.
@@ -454,9 +347,6 @@ public class Session {
                 }
             }else{
                 for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
-                    if(entry.getKey().equals(username)){
-                        continue;
-                    }
                     entry.getValue().sendDisconnectPlayer(username);
                 }
             }
@@ -468,51 +358,20 @@ public class Session {
      * relevant information.
      */
     private void connectionAccepted(Connexion c){
-        String scores = "";
-        String coord = "";
-        String obstacles_coords = "";
         synchronized(userLock){
             synchronized(phaseLock){
                 if(this.phase.equals("ingame") || this.phase.equals("ingame_race")){
-                    int i = players.size();
-                    for(Player p : players.values()){
-                        i--;
-                        scores += p.getUsername() + ":" + p.getScore();
-                        if(i>0){
-                            scores += "|";
-                        }
-                    }
+                    String scores = ProtocolManager.createScoresString(players);
+                    String coord = "";
                     synchronized(objectifLock){
-                        if(this.phase.equals("ingame")){
-                            coord = "X"+this.objectif.getX()+"Y"+this.objectif.getY();
-                        }
-                        else if(this.phase.equals("ingame_race")){
-                            Player player = players.get(c.getUsername());
-                            System.out.println(c.getUsername());
-                            if(player == null){
-                                System.out.println("JE SUIS NULL");
-                            }
-                            coord = "X" + this.race_objectives.get(player.getScore()).getX() + "Y" + race_objectives.get(player.getScore()).getY();
-                            if(player.getScore() < Constants.WIN_CAP - 1){
-                                coord += "|";
-                                coord += "X" + this.race_objectives.get(player.getScore()+1).getX() + "Y" + race_objectives.get(player.getScore()+1).getY();
-                            }
-                        }
+                        Player player = players.get(c.getUsername());
+                        coord = ProtocolManager.createObjectivesString(phase, objectif, race_objectives, player);
                     }
-                    i = obstacles.size();
-                    for(Obstacle o : obstacles){
-                        obstacles_coords += "X"+o.getX()+"Y"+o.getY();
-                        i--;
-                        if(i > 0){
-                            obstacles_coords += "|";
-                        }
-                    }
+                    String obstacles_coords = ProtocolManager.createObstaclesString(obstacles);
+                    c.sendConnectionAccepted(this.phase, scores, coord, obstacles_coords);
                 }
             }
         }
-
-        
-        c.sendConnectionAccepted(this.phase, scores, coord, obstacles_coords);
     }
 
     private void resetToValidPosition(Player newplayer) {
@@ -535,38 +394,6 @@ public class Session {
                         }
                     }
                 }
-            }
-        }
-    }
-
-
-    private Objectif createObjectifToValidPosition() {
-        boolean placementOK = false; // Check that the objectif is not inside an obstacle
-        Objectif tmp_objectif = null;
-        while (!placementOK) {
-            tmp_objectif = new Objectif();
-            placementOK = true;
-            for (Obstacle o : this.obstacles) {
-                if (o.isInCollisionWith(tmp_objectif.getX(), tmp_objectif.getY(), tmp_objectif.getRadius())) {
-                    placementOK = false;
-                    break;
-                }
-            }
-        }
-        return tmp_objectif;
-    }
-
-    /**
-     * Send a message to every client except the added one, to notify
-     * of the new player connection.
-     */
-    private void notifyOfNewPlayerConnection(String addedPlayer){
-        synchronized(userLock){
-            for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
-                if(entry.getKey().equals(addedPlayer)){
-                    continue;
-                }
-                entry.getValue().sendNewPlayer(addedPlayer);
             }
         }
     }
