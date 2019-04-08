@@ -1,22 +1,19 @@
 import re
 import pygame
 from multiplayer_game import MultiplayerGame
-
+from menu import Menu
 class Client:
 
     def __init__(self, window_width, window_height, title="Client window"):
         self.window_width = window_width
         self.window_height = window_height
 
-        username = ""
-        while(not re.match('^[a-z]+$', username) or len(username) > 10):
-            username = input("Username : ")
-
         pygame.init()
         self.window = pygame.display.set_mode((window_width, window_height))
         pygame.display.set_caption(title)
         self.clock = pygame.time.Clock() # Used to control refresh rate
-        MultiplayerGame(self, username)
+        Menu(self)
+        # MultiplayerGame(self, username)
         
 
 

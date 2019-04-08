@@ -60,7 +60,7 @@ public class Session {
     		if (addUser(name, c)) {
                 synchronized (phaseLock) {
                     if (this.phase.equals("inactive")) {
-                        this.phase = "waiting";
+                        this.phase = "attente";
                         scheduleStart();
                     }
                 }
@@ -97,7 +97,7 @@ public class Session {
 
     /**
      * Creates a thread that will keep running as long as the Session is in a
-     * "ingame" phase and will call the tick() function "SERVER_TICKRATE" times per
+     * "jeu" phase and will call the tick() function "SERVER_TICKRATE" times per
      * second
      */
     private void autoTick() {
@@ -105,7 +105,7 @@ public class Session {
             public void run() {
                 while (true) {
                     synchronized (phaseLock) {
-                        if (!phase.equals("ingame") && !phase.equals("ingame_race")) {
+                        if (!phase.equals("jeu") && !phase.equals("ingame_race")) {
                             return;
                         }
                     }
@@ -122,7 +122,7 @@ public class Session {
     }
 
     /**
-     * Start the session if the phase is currently "waiting". It then creates an
+     * Start the session if the phase is currently "attente". It then creates an
      * Objectif, send a message to every client to notify the start of the session.
      * Finally it calls autoTick() to send message to client regularly of the state
      * of the game
@@ -138,8 +138,8 @@ public class Session {
                 this.obstacles.add(new Obstacle());
             }
             synchronized (objectifLock) {
-	            if (this.phase.equals("waiting")) {
-	                this.phase = "ingame";
+	            if (this.phase.equals("attente")) {
+	                this.phase = "jeu";
                     this.objectif = new Objectif(obstacles);
 	            }else if(this.phase.equals("waiting_race")){
 	                this.phase = "ingame_race";
@@ -189,7 +189,7 @@ public class Session {
                         p.reactToCollision();
                         
                         boolean isOnObjectif = false;
-                        if(this.phase.equals("ingame")){
+                        if(this.phase.equals("jeu")){
                             isOnObjectif = this.objectif.isCollectableBy(p);
                         }else if(this.phase.equals("ingame_race")){
                             isOnObjectif = this.race_objectives.get(p.getScore()).isCollectableBy(p);
@@ -242,7 +242,7 @@ public class Session {
         synchronized(userLock){
             synchronized(objectifLock){
                 String scores = ProtocolManager.createScoresString(players);
-                if(this.phase.equals("ingame")){
+                if(this.phase.equals("jeu")){
                     this.objectif = new Objectif(obstacles);
                 }
                 for(Player player : players.values()){
@@ -255,7 +255,7 @@ public class Session {
     }   
 
     /**
-     * Terminate the current session if it is in "ingame" phase.
+     * Terminate the current session if it is in "jeu" phase.
      * If there are still players in the session, it sends a message 
      * with scores to all of them, then prepare to restart a new gameplay 
      * session by starting the function which will call start() after a delay
@@ -263,7 +263,7 @@ public class Session {
     public void endSession(){
         synchronized(userLock){
             synchronized(phaseLock){
-                if(this.phase.equals("ingame") || this.phase.equals("ingame_race")){
+                if(this.phase.equals("jeu") || this.phase.equals("ingame_race")){
                     if(this.players.size() == 0){
                         this.phase = "inactive";
                     }else{
@@ -271,7 +271,7 @@ public class Session {
                         for(Map.Entry<String, Connexion> entry : connexions.entrySet()){
                             entry.getValue().sendEndSession(scores);
                         }
-                        this.phase = "waiting";
+                        this.phase = "attente";
                         scheduleStart();
                     }
                     this.obstacles.clear();
@@ -325,7 +325,7 @@ public class Session {
 
     public void createRace(){
         synchronized(phaseLock){
-            if(this.phase.equals("waiting")){
+            if(this.phase.equals("attente")){
                 this.phase = "waiting_race";
             }
         }
@@ -360,7 +360,7 @@ public class Session {
     private void connectionAccepted(Connexion c){
         synchronized(userLock){
             synchronized(phaseLock){
-                if(this.phase.equals("ingame") || this.phase.equals("ingame_race")){
+                if(this.phase.equals("jeu") || this.phase.equals("ingame_race")){
                     String scores = ProtocolManager.createScoresString(players);
                     String coord = "";
                     synchronized(objectifLock){
@@ -369,6 +369,8 @@ public class Session {
                     }
                     String obstacles_coords = ProtocolManager.createObstaclesString(obstacles);
                     c.sendConnectionAccepted(this.phase, scores, coord, obstacles_coords);
+                }else{
+                    c.sendConnectionAccepted(this.phase, "", "", "");
                 }
             }
         }

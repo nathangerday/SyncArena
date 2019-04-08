@@ -18,7 +18,7 @@ public class ProtocolManager{
 
     public static String createObjectivesString(String phase, Objectif objectif, List<Objectif> race_objectives, Player p) {
         String coord = "";
-        if(phase.equals("ingame")){
+        if(phase.equals("jeu")){
             coord = "X" + objectif.getX() + "Y" + objectif.getY();
         }else if(phase.equals("ingame_race")){
             coord = "X" + race_objectives.get(p.getScore()).getX() + "Y" + race_objectives.get(p.getScore()).getY();

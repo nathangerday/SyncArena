@@ -12,6 +12,7 @@ from score import Score
 from obstacle import Obstacle
 from input_box import InputBox
 from attack import Attack
+import menu
 
 
 class MultiplayerGame:
@@ -20,7 +21,7 @@ class MultiplayerGame:
         self.client = client
         self.logger = Logger()
         self.score_displayer = Score(username)
-        self.inputbox = InputBox(5, self.client.window_width - 30, self.logger)
+        self.inputbox = InputBox(5, self.client.window_width - 30, self.send_message)
         self.username = username
         self.is_socket_connected_to_server = False
         self.session_state = "nosession" # Indicate whether we not connected, requested connection or in a session
@@ -52,18 +53,18 @@ class MultiplayerGame:
 
             # TODO Handle connection failed
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.socket.connect((HOST, PORT))
-
+            try:
+                self.socket.connect((HOST, PORT))
+            except ConnectionRefusedError:
+                menu.Menu(self.client, "Connection to server failed")
             self.logger.add_message("Connection successful.")
             self.is_socket_connected_to_server = True
             
-            self.inputbox.socket = self.socket
-        
         if(self.session_state == "nosession"):
             self.logger.add_message("Trying to join a session...")
             self.session_state = "request"
             send_serveur.connect(self.socket, self.username)
-        elif(self.session_state == "ingame"):
+        elif(self.session_state == "jeu"):
             # send_serveur.newpos(self.socket, self.main_player.pos)
         
             if(time.time() - self.last_newcom > 1 / SERVER_TICKRATE):
@@ -86,7 +87,7 @@ class MultiplayerGame:
         
         commands = data.decode().split("\n")
         commands = [cmd.split("/") for cmd in commands]
-        # print(commands)
+        print(commands)
 
         #TODO Handle theses commands in another method
         for cmd in commands:
@@ -119,12 +120,12 @@ class MultiplayerGame:
         coord = cmd[3]
         obs_coords = cmd[4]
 
-        if(phase == "waiting"):
+        if(phase == "attente"):
             self.logger.add_message("Waiting to start session")
-            self.session_state = "waiting"
-        elif(phase == "ingame" or phase == "ingame_race"):
+            self.session_state = "attente"
+        elif(phase == "jeu" or phase == "ingame_race"):
             self.logger.add_message("Joining a game")   
-            self.session_state = "ingame"
+            self.session_state = "jeu"
             goals_coord = coord.split("|")
             goalx, goaly = parse_coord(goals_coord[0])
             if(len(goals_coord) == 2):
@@ -150,7 +151,7 @@ class MultiplayerGame:
 
     def apply_command_denied(self, cmd):
         self.logger.add_message("Joining session failed")
-        self.stop()
+        menu.Menu(self.client, "This username is already taken, please choose another")
 
     def apply_command_newplayer(self, cmd):
         user = cmd[1]
@@ -192,7 +193,7 @@ class MultiplayerGame:
                 pos = parse_coord(o)
                 self.arena.obstacles.append(Obstacle(pos[0], pos[1]))
         
-        self.session_state = "ingame"
+        self.session_state = "jeu"
         
 
     def apply_command_winner(self, cmd):
@@ -207,7 +208,7 @@ class MultiplayerGame:
         else:
             self.logger.add_message("End of game, winner is : " + winner)
         self.logger.add_message("A new game will restart soon")
-        self.session_state = "waiting"
+        self.session_state = "attente"
         self.arena.goal = None
         self.arena.obstacles.clear()
         self.arena.attacks.clear()
@@ -311,16 +312,29 @@ class MultiplayerGame:
 
 
 
+    def send_message(self, text):
+        words = text.split(" ")
+        if(len(words) >= 3 and words[0] == "/w" and len(words[1]) > 0 and len(words[2]) > 0):
+            msg = " ".join(words[2:])
+            self.logger.add_message("To " + words[1] + " : " + msg, (255,105,180))
+            send_serveur.sendpmsg(self.socket, words[1], msg)
+        elif(len(words) == 1 and words[0] == "/race"):
+            self.logger.add_message("The next session will be a race")
+            send_serveur.sendrace(self.socket)
+        else:
+            self.logger.add_message(text, (255,0,0))
+            send_serveur.sendmsg(self.socket, text)
+
 
 def parse_coord(coord):
-        """Parse coordinates with format X0.84Y0.48 to a tuple of float
-        """
-        vals = re.split("VX|VY|T", coord)
-        pos = re.split("X|Y", vals[0])
-        if(len(vals) == 1): # No vector or direction in received coordinates
-            return (float(pos[1]), float(pos[2]))
-        elif(len(vals) == 4):
-            vector = float(vals[1]), float(vals[2])
-            angle = float(vals[3])
-            return ((float(pos[1]), float(pos[2])), vector, angle)
+    """Parse coordinates with format X0.84Y0.48 to a tuple of float
+    """
+    vals = re.split("VX|VY|T", coord)
+    pos = re.split("X|Y", vals[0])
+    if(len(vals) == 1): # No vector or direction in received coordinates
+        return (float(pos[1]), float(pos[2]))
+    elif(len(vals) == 4):
+        vector = float(vals[1]), float(vals[2])
+        angle = float(vals[3])
+        return ((float(pos[1]), float(pos[2])), vector, angle)
 
