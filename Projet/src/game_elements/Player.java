@@ -36,10 +36,7 @@ public class Player{
     public void update(){
         this.oldX = x;
         this.oldY = y;
-        //TODO Use delta time since last update for more precision
         double scale_to_client_rate =  Constants.REFRESH_TICKRATE / Constants.SERVER_TICKRATE;
-        // this.x = Math.abs(this.x + 1 + ( this.vectorx * scale_to_client_rate ) ) %2 - 1;
-        // this.y = Math.abs(this.y + 1 + ( this.vectory * scale_to_client_rate ) ) %2 - 1;
         
         double newx = this.x + 1 + this.vectorx * scale_to_client_rate;
         double newy = this.y + 1 + this.vectory * scale_to_client_rate;

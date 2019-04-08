@@ -70,4 +70,3 @@ class Arena:
                     if(p.isInCollisionWith(otherp)):
                         p.moveTo(oldX, oldY)
                         p.inverseVector()
-                        # otherp.inverseVector() # TODO Potentiel problem, if both players do that, they cancel each other

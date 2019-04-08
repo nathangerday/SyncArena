@@ -46,7 +46,6 @@ public class Connexion extends Thread {
                 
                 switch(commands[0]){
                     case "CONNECT":
-                        //TODO Maybe Check only char between a - z
                         commands[1] = commands[1].toLowerCase();
                         this.username = commands[1];
                         connect(commands);
@@ -113,9 +112,7 @@ public class Connexion extends Thread {
                 in.close();
                 out.close();
                 client.close();                	
-            }catch (IOException e) {
-                //TODO Do something
-            }
+            }catch (IOException e) {}
 
             disconnect();
         }

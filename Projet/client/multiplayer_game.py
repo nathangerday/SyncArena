@@ -51,7 +51,6 @@ class MultiplayerGame:
         if(not self.is_socket_connected_to_server):
             self.logger.add_message("Connecting to server...")
 
-            # TODO Handle connection failed
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 self.socket.connect((HOST, PORT))
@@ -89,7 +88,6 @@ class MultiplayerGame:
         commands = [cmd.split("/") for cmd in commands]
         print(commands)
 
-        #TODO Handle theses commands in another method
         for cmd in commands:
             if(cmd[0] == "WELCOME"):
                 self.apply_command_welcome(cmd)
