@@ -1,6 +1,8 @@
 package server;
 
 import java.net.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.io.*;
 
 public class Serveur extends Thread {
@@ -18,10 +20,12 @@ public class Serveur extends Thread {
     
     public void run (){
         Session currentSession = new Session();
+        ExecutorService threadPool = Executors.newFixedThreadPool(20);
         try {
             while (true){
                 Socket client=ecoute.accept();
                 Connexion c = new Connexion (client, currentSession);
+                threadPool.submit(c);
             }
             
         }catch (IOException e){System.err.println(e.getMessage());System.exit(1);}

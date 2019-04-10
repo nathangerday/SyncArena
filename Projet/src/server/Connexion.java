@@ -3,7 +3,7 @@ package server;
 import java.net.*;
 import java.io.*;
 
-public class Connexion extends Thread {
+public class Connexion implements Runnable {
     protected Socket client; 
     protected BufferedReader in;
     protected PrintStream out;
@@ -22,7 +22,6 @@ public class Connexion extends Thread {
             System.err.println(e.getMessage());
             return;
         }
-        this.start();
     }
 
 
