@@ -1,6 +1,6 @@
 package server;
 
-import java.text.DecimalFormat;
+// import java.text.DecimalFormat;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +17,7 @@ import game_elements.Player;
 public class ProtocolManager{
     
     
-    private static DecimalFormat sixdecimals = new DecimalFormat("#.######"); // Permet de limiter le nombre de decimal pour les double
+    // private static DecimalFormat sixdecimals = new DecimalFormat("#.######"); // Permet de limiter le nombre de decimal pour les double
 
     private ProtocolManager(){}
 
@@ -40,9 +40,9 @@ public class ProtocolManager{
         int i = players.size();
         for (Player p : players.values()) {
             i--;
-            Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-            Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-            coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
+            // Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
+            // Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
+            coords += p.getUsername() + ":X" + p.getX() + "Y" + p.getY();
             if (i > 0) {
                 coords += "|";
             }
@@ -55,12 +55,12 @@ public class ProtocolManager{
         int i = players.size();
         for(Player p : players.values()){
             i--;
-            Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-            Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-            Double vectorxformat = Double.valueOf(sixdecimals.format(p.getVectorX()));
-            Double vectoryformat = Double.valueOf(sixdecimals.format(p.getVectorY()));
-            Double directionformat = Double.valueOf(sixdecimals.format(p.getDirection()));
-            vcoords += p.getUsername() + ":X" + xformat + "Y" + yformat + "VX" + vectorxformat + "VY" + vectoryformat + "T" + directionformat;
+            // Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
+            // Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
+            // Double vectorxformat = Double.valueOf(sixdecimals.format(p.getVectorX()));
+            // Double vectoryformat = Double.valueOf(sixdecimals.format(p.getVectorY()));
+            // Double directionformat = Double.valueOf(sixdecimals.format(p.getDirection()));
+            vcoords += p.getUsername() + ":X" + p.getX() + "Y" + p.getX() + "VX" + p.getVectorX() + "VY" + p.getVectorY() + "T" + p.getDirection();
     
             if (i > 0) {
                 vcoords += "|";
