@@ -1,6 +1,7 @@
 import re
 import pygame
 from menu import Menu
+from const import WINDOW_WIDTH, WINDOW_HEIGHT
 class Client:
     """Representation de la fenetre de base avec ses proprietes.
     """
@@ -17,4 +18,5 @@ class Client:
         self.clock = pygame.time.Clock() # Used to control refresh rate
         Menu(self)
 
-Client(900, 900)
+
+Client(WINDOW_WIDTH, WINDOW_HEIGHT)

@@ -19,6 +19,6 @@ WIN_CAP = 3
 
 
 # ======= NOT SAFE TO CHANGE ======= (Changing this will break chat and scores positions)
-WINDOW_WIDTH = 900
-WINDOW_HEIGHT = 900
+WINDOW_WIDTH = 700
+WINDOW_HEIGHT = 700
 
