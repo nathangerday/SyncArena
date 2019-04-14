@@ -4,8 +4,8 @@
 - *Nathan GERDAY* 3520055
 - *Pierre GOMEZ* 3520013
 
-**Remarque : Il est conseillé de lire le rapport à l'addresse suivante pour avoir un format plus agréable et mieux mis en page :**  
-https://github.com/nathangerday/Report_2019/blob/master/Rapport.md
+**Remarque :**  
+[Il est conseillé de lire le rapport à l'addresse suivante pour avoir un format plus agréable et mieux mis en page](https://github.com/nathangerday/Report_2019/blob/master/Rapport.md)
 
 # Sommaire <!-- omit in toc -->
 
@@ -23,12 +23,13 @@ https://github.com/nathangerday/Report_2019/blob/master/Rapport.md
   - [Travail réalisé / Extensions](#travail-r%C3%A9alis%C3%A9--extensions)
   - [Client](#client-1)
   - [Serveur](#serveur-1)
-- [Point pertinants](#point-pertinants)
+- [Points pertinants](#points-pertinants)
   - [Synchronisation](#synchronisation)
   - [Gestion de la session courante](#gestion-de-la-session-courante)
   - [Tickrates](#tickrates)
   - [Compatibilité Protocoles avec extensions](#compatibilit%C3%A9-protocoles-avec-extensions)
   - [Pool de threads](#pool-de-threads)
+
 
 # Introduction
 
@@ -45,7 +46,7 @@ https://github.com/nathangerday/Report_2019/blob/master/Rapport.md
 
 Nous utilisons la version de Java 1.8. Le serveur devrait cependant fonctionner avec toutes les versions récentes de Java.  
 
-Nous avons utilisons un fichier *build.xml* afin de pouvoir compiler tout le serveur avec Ant. Il suffit pour cela d'utiliser la commande :  
+Nous avons utilisé un fichier *build.xml* afin de pouvoir compiler tout le serveur avec Ant. Il suffit pour cela d'utiliser la commande :  
 ```
 ant compile
 ```
@@ -54,9 +55,9 @@ ant compile
 
 Nous utilisons Python 3 dans la version 3.6.7.  
 Les versions plus récentes fonctionnent également.
-Les versions plus anciennes de Python 3 devrait fonctionner pour la majorité d'entres elles bien que nous ne les ayons pas testé.
+Les versions plus anciennes de Python 3 devrait fonctionner pour la majorité d'entres elles bien que nous ne les ayons pas testées.
 
-Il faut également installer la librairie Pygame. Le plus simple est de passer par l'installeur de module pour Python qui s'appelle Pip.
+Il faut également installer la librairie Pygame. Le plus simple est de passer par l'installeur de modules pour Python qui s'appelle Pip.
 
 Installation de pip:  
 ```sh
@@ -77,12 +78,12 @@ Une fois le serveur compilé avec `ant compile`, il suffit de le lancer avec la 
 java -cp bin/ server.Serveur
 ```
 
-Le serveur va ensuite va tourner sur le port indiqué et gerer les connexions jusqu'à ce qu'on l'arrête avec une interruption **Ctrl+C**.
+Le serveur va ensuite va tourner sur le port indiqué et gérer les connexions jusqu'à ce qu'on l'arrête avec une interruption **Ctrl+C**.
 
 
 ### Démarrer le client
 
-Pour lancer un client depuis la racine du projet, on éxécute la commande :
+Pour lancer un client depuis la racine du projet, on exécute la commande :
 ```
 python3 client/client.py
 ```
@@ -97,7 +98,7 @@ Le port par défaut est 45678.
 Pour le modifier sur le serveur, il faut aller dans le fichier `src/constants/Constants.java`.
 Pour le client, on peut modifier le port ainsi que l'addresse hôte dans le fichier `client/const.py`.
 
-Avant tout, on démarre le serveur.  
+Avant tout, on démarre le serveur, comme indiqué dans la partie précédente.  
 
 Ensuite, lorsque l'on lance un client, un premier écran permet d'entrer une nom d'utilisateur. Une fois le nom entré, on peut appuyer sur **Entrée** pour se connecter automatiquement au serveur.  
 
@@ -123,7 +124,7 @@ Pour envoyer un message privé, il faut écrire un message de la forme :
 
 Toutes les informations ainsi que messages du chat s'affichent dans un log en bas à gauche de la fenêtre. Les messages disparaissent après un certain temps.
 
-Les scores de chaque joueurs sont affichés en haut à droite de l'écran triés selon le score.
+Les scores de chaque joueurs sont affichés en haut à droite de l'écran triés en ordre décroissant.
 
 On peut attaquer à tout moment et si un tir touche un adversaire, il s'arrête instantanément.
 
@@ -138,9 +139,9 @@ En mode Course, on voit alors 2 objectifs:
 ## Travail réalisé /  Extensions
 
 Nous avons réalisé 3 extensions en plus des parties A, B et C du sujet.  
-Tout est fonctionnel et, bien que nous n'ayons pas testé nous-même, le serveur et le client respectent le protocole et devrait être donc compatible avec d'autres. Lors de l'ajout d'extensions, nous avons veillé à conserver la compatibilié avec un client / serveur n'incluant pas ces extensions.
+Tout est fonctionnel et, bien que nous n'ayons pas testé nous-même, le serveur et le client respectent le protocole et devraient donc être compatibles avec d'autres. Lors de l'ajout d'extensions, nous avons veillé à conserver la compatibilié avec un client / serveur n'incluant pas ces extensions.
 
-Le seul point sur lequel nous avons dû faire un choix et qui pourra donc créer un problème de compatibilité est au niveau de la gestion des coordonnées. Nous avons fait le choix d'avoir des données "abstraites" côté serveur et c'est ensuite au client de les convertir en coordonnées réelles en fonction de la taille de sa fenêtre. Côté serveur, nous avons des coordonnées entre -1 et 1, avec le point (0,0) au centre, le point (-1, -1) en haut à gauche et le point (1, 1) en bas à droite. Tout le protocole utilise donc ces données abstraites. Cela nous permettrait en théorie d'avoir des tailles de fenêtre variable pour chaque client et de toujours garder des coordonnées cohérentes.
+Le seul point sur lequel nous avons dû faire un choix et qui pourra donc créer un problème de compatibilité est au niveau de la gestion des coordonnées. Nous avons fait le choix d'avoir des données "abstraites" côté serveur et c'est ensuite au client de les convertir en coordonnées réelles en fonction de la taille de sa fenêtre. Côté serveur, nous avons des coordonnées entre -1 et 1, avec le point (0,0) au centre, le point (-1, -1) en haut à gauche et le point (1, 1) en bas à droite. Tout le protocole utilise donc ces données abstraites. Cela nous permettrait en théorie d'avoir des tailles de fenêtre variable pour chaque client et de toujours garder des affichages cohérents.
 
 Les extensions réalisées sont :
 - Un chat tel que décrit dans le sujet avec affichage des messages directement dans la fenêtre de jeu.
@@ -151,11 +152,11 @@ Les extensions réalisées sont :
 
 Nous allons tout d'abord décrire le fonctionnement général du client, sans rentrer dans les détails.
 
-Le client initialise une fenêtre graphique avec un menu permettant de se connecter au serveur avec le protocole *CONNECT*. Une fois la connexion réussie, on lance la fenêtre correspondant à un session en jeu. Cette fenêtre est composé d'une boucle infini réalisant les opérations suivantes : 
+Le client initialise une fenêtre graphique avec un menu permettant de se connecter au serveur avec le protocole *CONNECT*. Une fois la connexion réussie, on lance la fenêtre correspondant à une session en jeu. Cette fenêtre est composée d'une boucle infini réalisant les opérations suivantes : 
 1)  Envoi des données au serveur en fonction de l'état actuel du jeu et des inputs. Lorsqu'on est en jeu, pour envoyer une fois tout les *tickrate server*, on utilise une variable indiquant quand le dernier envoi a été fait, et on compare cette variable au *tickrate server* afin de savoir si on doit envoyer ou non. Cela fonctionne car on sait que le *refresh tickrate* du client est bien supérieur au *server tickrate*.
-2)  Réception des données du serveur, parsing et application du comportement correspond au message reçu.
+2)  Réception des données du serveur, parsing et application du comportement correspondant au message reçu.
 3)  Gestion des entrées claviers de l'utilisateur
-4)  Mise à jours des entités du client (Player, Attack, ...). Cela correspond à la prédiction, ces données seront potentiellement écrasé à la prochaine réception des données du serveur.
+4)  Mise à jour des entités du client (Player, Attack, ...). Cela correspond à la prédiction, ces données seront potentiellement écrasées à la prochaine réception des données du serveur.
 5)  Affichage des entités sur la fenêtre.
 6)  Attente jusqu'a la fin du tick, afin d'avoir *refresh tickrate* ticks par seconde.
 
@@ -167,9 +168,9 @@ Nous allons donc ici faire une présentation rapide de ces éléments et de leur
 - Le fichier `send_serveur.py` contient les différentes fonctions pour envoyer des messages respectant le protocole au serveur.
 
 
-- **Client** (dans `client.py`) représente la fenêtre d'interface du client avec quelques ses proprités (titres, tailles, ...)
+- **Client** (dans `client.py`) représente la fenêtre d'interface du client avec quelques unes de ses proprités (titres, tailles, ...)
 - **Menu** (dans `menu.py`) représente un écran dans lequelle on peut saisir un pseudo et se connecter à une session en appuyant sur Entrée
-- **MultiplayerGame** (dans `multiplayer_game.py`) correspond à toute la gestion de la communication avec le serveur. On y trouve notamment les méthodes pour gérer tout les comportement par rapport à chaque commande du protocole ainsi que toutes les variables représentant l'état courant du jeu. C'est ici que le boucle infini dont nous avons parlé pluys haut à lieu, dans la méthode `main_loop()`.
+- **MultiplayerGame** (dans `multiplayer_game.py`) correspond à toute la gestion de la communication avec le serveur. On y trouve notamment les méthodes pour gérer tout les comportement par rapport à chaque commande du protocole ainsi que toutes les variables représentant l'état courant du jeu. C'est ici que la boucle infini dont nous avons parlé plus haut à lieu, dans la méthode `main_loop()`.
 - **Arena** (dans `arena.py`) contient toutes les entités d'une partie et s'occupe de faire le lien entre leurs coordonnées abstraites et les coordonées réelles de la fenêtre pour les dessiner, ainsi que de les mettre à jour.  
 - **Player** (dans `player.py`) représente toutes les informations sur l'état d'un joueur de la partie ainsi que les comportements des input utilisateurs.
 - **Goal** (dans `goal.py`) représente un objectif de la partie et permet de verifier s'il est collectable à partir de coordonnées données.
@@ -190,11 +191,11 @@ Au lancement du serveur, un premier Thread se lance sur la classe Serveur. Ce th
 2) Appliquer les modifications dans la Session partagée correspondant à ce message.
 3) Si nécéssaire, envoyer un message réponse au client connecté et potentiellement à tout les autres clients de la session.
 
-Pour faire cela, nous avons implémenté des méthodes dans Session, permettant d'appliquer chaque commande du protocole et qui se chargent de gérer les synchronisations. Ces méthodes s'occupent égalements de prévenir les Connexion liées de chaque client pour lequel il faut envoyer une réponse.
+Pour faire cela, nous avons implémenté des méthodes dans Session, permettant d'appliquer chaque commande du protocole et qui se chargent de gérer les synchronisations. Ces méthodes s'occupent également de prévenir les Connexion liées de chaque client pour lesquels il faut envoyer une réponse.
 
 Enfin, lorsque la phase est en mode jeu, il y a également un dernier Thread qui s'occupe de lancer régulièrement les ticks serveurs afin de mettre à jour sur le serveur et d'envoyer le protocole *TICK* à tous les clients connectés.
 
-Le code du serveur est organisé en 3 parties distinctes : les constantes (package `constants`), les éléments de représentaiton de l'était du jeu (package `game_elements`) et les élements de gestion de la concurrence et du protocole (package `server`).
+Le code du serveur est organisé en 3 parties distinctes : les constantes (package `constants`), les éléments de représentation de l'état du jeu (package `game_elements`) et les élements de gestion de la concurrence et du protocole (package `server`).
 
 Nous allons ici expliquer un peu plus en détails le rôle et fonctionnement de chaque classe.
 
@@ -213,7 +214,7 @@ Package `game_elements` :
 - **Obstacle** : Représente un obstacle et permet de vérifier s'il est en collision avec un autre élément.
 - **Attack** : Représente un tir et avec son état courant et permet d'intéragir avec un joueur si jamais il entre en collision.
 
-# Point pertinants
+# Points pertinants
 
 ## Synchronisation
 
@@ -314,11 +315,9 @@ Les commandes ajoutées aux protocoles sont :
 - (S -> C) `NEWOBJ/ocoords/scores/` => Si on est en partie standard, le ocoords contient la coordonée de l'unique objectif et est donc identique au format "coord" par défaut. En mode course, il contient l'objectif courant ainsi que l'objectif suivant.
 
 
-
-
 ## Pool de threads
 
-Le serveur, au moment d'accepté les connexions client et de créer le thread Connexion pour le client en question passe par une pool de thread de la classe Executors de Java. Cela a peu d'influence sur l'ensemble du projet mais apporte 2 avantages non négligeables :
+Le serveur, au moment d'accepter les connexions clients et de créer le thread Connexion pour le client en question passe par une pool de thread de la classe Executors de Java. Cela a peu d'influence sur l'ensemble du projet mais apporte 2 avantages non négligeables :
 - Cela permet de limiter simplement le nombre de client à tout moment et donc de garantir une certaine sureté sur le serveur qui ne pourra pas être surcharger.
 - La gestion de la pool de thread faite par Executor permet de pas recréer des threads à chaques nouvelles connexions, ce qui limite le coût en performance des connexions.
 
