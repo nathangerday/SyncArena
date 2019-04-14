@@ -15,7 +15,7 @@
     - [Démarrer le client](#d%C3%A9marrer-le-client)
     - [Comment jouer ?](#comment-jouer)
 - [Description du projet](#description-du-projet)
-  - [Extensions](#extensions)
+  - [Travail réalisé / Extensions](#travail-r%C3%A9alis%C3%A9--extensions)
   - [Serveur](#serveur-1)
   - [Client](#client-1)
 - [Point pertinants](#point-pertinants)
@@ -23,6 +23,7 @@
   - [Gestion de la session courante](#gestion-de-la-session-courante)
   - [Tickrates](#tickrates)
   - [Compatibilité Protocoles avec extensions](#compatibilit%C3%A9-protocoles-avec-extensions)
+  - [Pool de threads](#pool-de-threads)
 
 # Introduction
 
@@ -127,7 +128,12 @@ En mode Course, on voit alors 2 objectifs:
 
 # Description du projet
 
-## Extensions
+## Travail réalisé /  Extensions
+
+Nous avons réalisé 3 extensions en plus des parties A, B et C du sujet.  
+Tout est fonctionnel et, bien que nous n'ayons pas testé nous-même, le serveur et le client respectent le protocole et devrait être donc compatible avec d'autres. Lors de l'ajout d'extensions, nous avons veillé à conserver la compatibilié avec un client / serveur n'incluant pas ces extensions.
+
+Le seul point sur lequel nous avons dû faire un choix et qui pourra donc créer un problème de compatibilité est au niveau de la gestion des coordonnées. Nous avons fait le choix d'avoir des données "abstraites" côté serveur et c'est ensuite au client de les convertir en coordonnées réelles en fonction de la taille de sa fenêtre. Côté serveur, nous avons des coordonnées entre -1 et 1, avec le point (0,0) au centre, le point (-1, -1) en haut à gauche et le point (1, 1) en bas à droite. Tout le protocole utilise donc ces données abstraites. Cela nous permettrait en théorie d'avoir des tailles de fenêtre variable pour chaque client et de toujours garder des coordonnées cohérentes.
 
 ## Serveur
 
@@ -152,6 +158,10 @@ TODO Scaling + Collision => retour position précedente
 ## Compatibilité Protocoles avec extensions
 
 TODO NEWCOM2 / TICK2
+
+## Pool de threads
+
+TODO Executors
 
 
 

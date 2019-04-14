@@ -1,5 +1,4 @@
 import pygame
-from const import WIN_CAP
 
 class Score:
     """Permet d'afficher les scores de chaque joueurs dans une arene.

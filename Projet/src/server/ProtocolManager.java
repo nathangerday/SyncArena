@@ -11,8 +11,13 @@ import game_elements.Objectif;
 import game_elements.Obstacle;
 import game_elements.Player;
 
+/**
+ * Classe permettant de créer des String respectant le protocoles à partir des données brutes du jeux
+ */
 public class ProtocolManager{
-    private static DecimalFormat sixdecimals = new DecimalFormat("#.######");
+    
+    
+    private static DecimalFormat sixdecimals = new DecimalFormat("#.######"); // Permet de limiter le nombre de decimal pour les double
 
     private ProtocolManager(){}
 

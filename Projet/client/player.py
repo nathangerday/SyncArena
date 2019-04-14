@@ -18,12 +18,12 @@ class Player:
         self.vector = (0.0, 0.0)
         self.radius = VE_RADIUS
         self.score = 0
+        self.hasShoot = False # Indique si on tire pendant ce tick, on ne peut tirer qu'une fois pas tick
+        self.command_angle = 0
+        self.command_thrust = 0
         self.original_sprite = pygame.image.load(path_to_sprite)
         self.original_sprite = pygame.transform.scale(self.original_sprite, (self.sprite_size, self.sprite_size)) # Original sprite which should never change
         self.current_sprite = self.original_sprite # Sprite with correct transform
-        self.hasShoot = False
-        self.command_angle = 0
-        self.command_thrust = 0
         
     
     def thrust(self):
@@ -81,7 +81,6 @@ class Player:
 
         self.pos = (newx, newy)
         self.current_sprite = pygame.transform.rotate(self.original_sprite, math.degrees(self.direction))
-        # print(self.pos)
 
     def draw(self, window, xwindow, ywindow):
         if(self.to_display):

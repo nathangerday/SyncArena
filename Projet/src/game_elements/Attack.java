@@ -69,7 +69,7 @@ public class Attack{
         }
         for(Obstacle o : obstacles){
             if(o.isInCollisionWith(this.x, this.y, Constants.SHOOT_RADIUS)){
-                this.toRemove = true;
+                this.toRemove = true; // Collision d'une attaque avec un obstacle fait disparaitre l'attaque
                 return;
             }
         }
@@ -77,6 +77,7 @@ public class Attack{
         for(Player p : players){
             if(!p.equals(origin)){
                 if(p.isInCollisionWith(x, y, Constants.SHOOT_RADIUS)){
+                    // Si on est en collision avec un joueur, on stop le joueur et on disparait
                     this.toRemove= true;
                     p.reactToAttack();
                     return;

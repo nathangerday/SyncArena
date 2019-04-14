@@ -26,7 +26,8 @@ public class Objectif{
     }
 
     public Objectif(List<Obstacle> obstacles){
-        boolean placementOK = false; // Check that the objectif is not inside an obstacle
+        // Check that the objectif is not inside an obstacle
+        boolean placementOK = false; 
         while (!placementOK) {
             moveToRandomPos();
             placementOK = true;

@@ -325,7 +325,7 @@ class MultiplayerGame:
 
 
 def parse_coord(coord):
-    """Parse coordinates with format X0.84Y0.48 to a tuple of float
+    """Parse coordinates with format X0.84Y0.48 or format X0.000125Y-2.5VX-0.002VY0T1.57 to a tuple of float
     """
     vals = re.split("VX|VY|T", coord)
     pos = re.split("X|Y", vals[0])

@@ -51,9 +51,6 @@ public class Player{
         }else{
             this.y = newy % 2 - 1;
         }
-
-        // this.x = 2 - Math.abs(this.x + 1 + (this.vectorx * scale_to_client_rate)) % 2 - 1;
-        // this.y = 2 - Math.abs(this.y + 1 + (this.vectory * scale_to_client_rate)) % 2 - 1;
     }
 
     public String getUsername(){

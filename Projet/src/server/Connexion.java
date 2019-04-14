@@ -36,13 +36,7 @@ public class Connexion implements Runnable {
                 }else {
                 	return;
                 }
-                	
-                // String tmp = in.readLine();
-                // System.out.println(tmp);
-                // commands = tmp.split("/");
-                // System.out.println(commands[1]);
-                // System.out.flush();
-                
+
                 switch(commands[0]){
                     case "CONNECT":
                         commands[1] = commands[1].toLowerCase();
@@ -131,20 +125,6 @@ public class Connexion implements Runnable {
             System.err.println("Error : Trying to connect to a session as " + commands[1] + " but already connected as " + this.username);
             sendConnectionDenied();
         }
-
-        // if(this.username == null){ // Not yet connected
-        //     System.out.println("User " + commands[1] + " connecting");        
-        //     if(session.connect(commands[1])){
-        //         this.username = commands[1];
-        //         System.out.println("Connection acceptée");   
-        //     }else{
-        //         System.out.println("Connection denied");
-        //         sendConnectionDenied();
-        //     }
-        // }else{
-        //     System.out.println("Already connected with username : " + this.username);
-        //     sendConnectionDenied();
-        // }
     }
 
     private void disconnect(){
@@ -154,6 +134,9 @@ public class Connexion implements Runnable {
             this.username = "";
         }
     }
+
+
+    // Envoi des messages au client 
 
     public void sendConnectionDenied(){
         this.out.println("DENIED/");

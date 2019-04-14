@@ -1,3 +1,8 @@
+"""Ensemble de fonctions permettant d'envoyer des données au serveur en respectant le protocole
+"""
+
+
+
 def connect(socket, username):
     socket.sendall(("CONNECT/"+str(username)+"/\n").encode())
 
@@ -21,5 +26,5 @@ def sendmsg(socket, msg):
 def sendpmsg(socket, user, msg):
     socket.sendall(("PENVOI/"+str(user)+"/"+str(msg)+"/\n").encode())
     
-def sendrace(socket):
+def sendrace(socket): # Indique qu'on veut lancer une course au serveur
     socket.sendall("RACE/\n".encode())
