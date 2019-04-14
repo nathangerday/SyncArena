@@ -4,6 +4,8 @@
 - *Nathan GERDAY* 3520055
 - *Pierre GOMEZ* 3520013
 
+_Date de rendu : 14/04/2019_ 
+
 **Remarque :**  
 [Il est conseillé de lire le rapport à l'addresse suivante pour avoir un format plus agréable et mieux mis en page](https://github.com/nathangerday/Report_2019/blob/master/Rapport.md)
 
@@ -94,9 +96,12 @@ Chaque exécution de la commande lancera un nouveau client.
 
 ### Comment jouer ?
 
+
 Le port par défaut est 45678.
 Pour le modifier sur le serveur, il faut aller dans le fichier `src/constants/Constants.java`.
 Pour le client, on peut modifier le port ainsi que l'addresse hôte dans le fichier `client/const.py`.
+
+Le REFRESH_TICKRATE, qui définit notamment la vitese d'animation du client est à 30 par défaut. Nous avons pu remarquer, en testant le projet sur une machine virtuelle peu performante, que si l'ordinateur n'arrive pas à suivre ce tickrate, cela peut fausser la synchronisation entre le client et le serveur et donc afficher des états peu cohérents.
 
 Avant tout, on démarre le serveur, comme indiqué dans la partie précédente.  
 
@@ -164,7 +169,7 @@ Le client initialise une fenêtre graphique avec un menu permettant de se connec
 Le client est implémenté en utilisant principalement les classes de Python.
 Nous allons donc ici faire une présentation rapide de ces éléments et de leur rôle.
 
-- Le fichier `const.py` contient toutes les constantes qui permettent de définir le comportement du jeu côté client. Il y a notamment les valeurs *PORT* et *HOST* qu'il peut être utile de changer pour connecter à un autre serveur.
+- Le fichier `const.py` contient toutes les constantes qui permettent de définir le comportement du jeu côté client. Il y a notamment les valeurs *PORT* et *HOST* qu'il peut être utile de changer pour connecter à un autre serveur, ainsi que les constantes du REFRESH_TICKRATE et SERVER_TICKRATE.
 - Le fichier `send_serveur.py` contient les différentes fonctions pour envoyer des messages respectant le protocole au serveur.
 
 
@@ -185,7 +190,7 @@ Nous allons donc ici faire une présentation rapide de ces éléments et de leur
 
 De même que pour le client, nous allons décrire le fonctionnement général du serveur avant de rentrer dans les détails.
 
-Au lancement du serveur, un premier Thread se lance sur la classe Serveur. Ce thread va faire une boucle infini sur un mécanisme d'écoute de connexion de client. A chaque fois qu'un client se connecte au serveur, il va créer un nouveau Thread Connexion pour ce client qui sera lié à une Session. Ce Thread Connexion sera chargé de gérer toute la communication avec ce client précis ainsi que de modifier la Session, qui correpsond à l'ensemble des ressources partagées entre tout les clients, en fonction des messages envoyés par le client. Le comportement de la boucle Connexion pour un client donné est donc:  
+Au lancement du serveur, un premier Thread se lance sur la classe Serveur. Ce thread va faire une boucle infini sur un mécanisme d'écoute de connexion de client. A chaque fois qu'un client se connecte au serveur, il va créer un nouveau Thread Connexion pour ce client qui sera lié à une Session. Ce Thread Connexion sera chargé de gérer toute la communication avec ce client précis ainsi que de modifier la Session, qui correspond à l'ensemble des ressources partagées entre tout les clients, en fonction des messages envoyés par le client. Le comportement de la boucle Connexion pour un client donné est donc:  
 
 1) Recevoir le message respectant le protocole du client.
 2) Appliquer les modifications dans la Session partagée correspondant à ce message.
@@ -200,7 +205,7 @@ Le code du serveur est organisé en 3 parties distinctes : les constantes (packa
 Nous allons ici expliquer un peu plus en détails le rôle et fonctionnement de chaque classe.
 
 Package `constants` :
-- **Constants** : De même que pour le client, contient toutes les constantes utile dans l'application avec notamment le *PORT* sur lequel écouter.
+- **Constants** : De même que pour le client, contient toutes les constantes utile dans l'application avec notamment le *PORT* sur lequel écouter. Les constantes du REFRESH_TICKRATE et SERVER_TICKRATE s'y trouvent également.
 
 Package `server` :
 - **Serveur** : Attend les connexions des clients et crée envoi un nouveau thread Connexion dans un pool de threads lorsqu'un client se connecte. Il lie alors cette Connexion à un Session.

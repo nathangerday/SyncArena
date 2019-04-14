@@ -4,8 +4,8 @@ PORT = 45678
 TEST_DISPLAY_LENGTH = 20
 
 # ======= MUST BE IDENTICAL TO SERVER =======
-REFRESH_TICKRATE = 60 # Must be much higher than server_tickrate
-SERVER_TICKRATE = 17
+REFRESH_TICKRATE = 30 # Must be much higher than server_tickrate
+SERVER_TICKRATE = 10
 MAX_THRUST = 0.01
 TURNIT = 0.06
 THRUSTIT = 0.002
