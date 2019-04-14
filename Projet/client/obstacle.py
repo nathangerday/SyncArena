@@ -3,6 +3,9 @@ import pygame
 from const import OB_RADIUS
 
 class Obstacle:
+    """Représente un unique obstacle dans le jeu.
+    """
+
 
     def __init__(self, x, y):
         self.x = x

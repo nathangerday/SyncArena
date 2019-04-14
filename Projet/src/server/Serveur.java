@@ -3,10 +3,13 @@ package server;
 import java.net.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import constants.Constants;
+
 import java.io.*;
 
 public class Serveur extends Thread {
-    protected static final int PORT =45678;
+    protected static final int PORT = Constants.PORT;
     protected ServerSocket ecoute;
     public Serveur () {
         try {ecoute = new ServerSocket(PORT);}

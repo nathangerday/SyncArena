@@ -86,7 +86,7 @@ class MultiplayerGame:
         
         commands = data.decode().split("\n")
         commands = [cmd.split("/") for cmd in commands]
-        print(commands)
+        # print(commands)
 
         for cmd in commands:
             if(cmd[0] == "WELCOME"):

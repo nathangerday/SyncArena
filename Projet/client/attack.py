@@ -2,6 +2,10 @@ import pygame
 from const import SHOOT_RADIUS
 
 class Attack:
+    """Represente une attaque unique dans le jeu avec sa position courante et son vecteur indiquant sa vitesse.
+    """
+
+
     def __init__(self, pos, vector, direction):
         self.pos = pos
         self.vector = vector

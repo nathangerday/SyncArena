@@ -5,7 +5,7 @@ import pygame
 from const import *
 
 class Player:
-    """Represente une voiture pouvant etre controlee par le joueur ou par le serveur
+    """Represente un vaisseau ainsi que des operations permettant de le controler
     """
     
 

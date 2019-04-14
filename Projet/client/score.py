@@ -2,6 +2,10 @@ import pygame
 from const import WIN_CAP
 
 class Score:
+    """Permet d'afficher les scores de chaque joueurs dans une arene.
+    """
+
+
     def __init__(self, username):
         self.font = pygame.font.SysFont("Comis Sans MS", 20)
         self.username = username

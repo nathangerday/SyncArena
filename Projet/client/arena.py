@@ -60,11 +60,14 @@ class Arena:
             oldX = p.pos[0]
             oldY = p.pos[1]
             p.update()
+
+            #Collision with obstacles
             for o in self.obstacles:
                 if(o.isInCollisionWith(p)):
                     p.moveTo(oldX, oldY)
                     p.inverseVector()
 
+            #Collision with players
             for otherp in self.players.values():
                 if(otherp != p):
                     if(p.isInCollisionWith(otherp)):

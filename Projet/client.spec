@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['client.py'],
+a = Analysis(['client/client.py'],
              pathex=['/home/natdev/Prog/M1/S2/PC2R/Projet'],
              binaries=[],
              datas=[],

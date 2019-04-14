@@ -3,8 +3,11 @@ package constants;
 public final class Constants{
     private Constants(){}
 
+    public static final int PORT = 45678;
+
     public static final int REFRESH_TICKRATE = 60;
     public static final int SERVER_TICKRATE = 17;
+    public static final int DELAY_BEFORE_START = 15;
     public static final double MAX_THRUST = 0.01;
     public static final double TURNIT = 0.06;
     public static final double THRUSTIT = 0.002;

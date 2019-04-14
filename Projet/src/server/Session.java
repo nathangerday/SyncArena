@@ -29,7 +29,7 @@ public class Session {
     private List<Objectif> race_objectives = null;
     private String phase = "inactive";
     
-    private int delayBeforeStart = 10;
+    private int delayBeforeStart = Constants.DELAY_BEFORE_START;
 
     /**
      * Creates the player associated with the given username if 
