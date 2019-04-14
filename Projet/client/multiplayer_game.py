@@ -120,6 +120,7 @@ class MultiplayerGame:
 
         if(phase == "attente"):
             self.logger.add_message("Waiting to start session")
+            self.logger.add_message("Type /race to start a race next")
             self.session_state = "attente"
         elif(phase == "jeu" or phase == "ingame_race"):
             self.logger.add_message("Joining a game")   
