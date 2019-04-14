@@ -61,12 +61,12 @@ Les versions plus anciennes de Python 3 devrait fonctionner pour la majorité d'
 
 Il faut également installer la librairie Pygame. Le plus simple est de passer par l'installeur de modules pour Python qui s'appelle Pip.
 
-Installation de pip:  
+Installation de pip (en root) :  
 ```sh
 apt-get install python3-pip
 ```
 
-Installation de Pygame:  
+Installation de Pygame (pas en root) :  
 ```sh
 python3 -m pip install pygame
 ```
@@ -324,7 +324,7 @@ Les commandes ajoutées aux protocoles sont :
 
 Le serveur, au moment d'accepter les connexions clients et de créer le thread Connexion pour le client en question passe par une pool de thread de la classe Executors de Java. Cela a peu d'influence sur l'ensemble du projet mais apporte 2 avantages non négligeables :
 - Cela permet de limiter simplement le nombre de client à tout moment et donc de garantir une certaine sureté sur le serveur qui ne pourra pas être surcharger.
-- La gestion de la pool de thread faite par Executor permet de pas recréer des threads à chaques nouvelles connexions, ce qui limite le coût en performance des connexions.
+- La gestion de la pool de thread faite par Executors permet de pas recréer des threads à chaques nouvelles connexions, ce qui limite le coût en performance des connexions.
 
 
 ```Java

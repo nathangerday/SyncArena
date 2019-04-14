@@ -108,7 +108,9 @@ public class ProtocolManager{
     }
 
     private static String doubleToString(double d){
-        return String.format("%.5f", d);
+        String res = String.format("%.5f", d);
+        res = res.replace(',', '.');
+        return res;
     }
 
 }
