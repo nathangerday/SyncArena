@@ -2,7 +2,7 @@ import re
 import pygame
 from menu import Menu
 class Client:
-    """Representation de la fenetre de bases avec ses proprietes.
+    """Representation de la fenetre de base avec ses proprietes.
     """
 
 

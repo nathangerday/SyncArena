@@ -1,6 +1,11 @@
 # Rapport Projet PC2R 2018-2019 <!-- omit in toc -->
 
-*Auteurs : Nathan GERDAY / Pierre GOMEZ*
+**Auteurs :**
+- *Nathan GERDAY* 3520055
+- *Pierre GOMEZ* 3520013
+
+**Remarque : Il est conseillé de lire le rapport à l'addresse suivante pour avoir un format plus agréable et mieux mis en page :**  
+https://github.com/nathangerday/Report_2019/blob/master/Rapport.md
 
 # Sommaire <!-- omit in toc -->
 
@@ -149,9 +154,10 @@ Nous allons tout d'abord décrire le fonctionnement général du client, sans re
 Le client initialise une fenêtre graphique avec un menu permettant de se connecter au serveur avec le protocole *CONNECT*. Une fois la connexion réussie, on lance la fenêtre correspondant à un session en jeu. Cette fenêtre est composé d'une boucle infini réalisant les opérations suivantes : 
 1)  Envoi des données au serveur en fonction de l'état actuel du jeu et des inputs. Lorsqu'on est en jeu, pour envoyer une fois tout les *tickrate server*, on utilise une variable indiquant quand le dernier envoi a été fait, et on compare cette variable au *tickrate server* afin de savoir si on doit envoyer ou non. Cela fonctionne car on sait que le *refresh tickrate* du client est bien supérieur au *server tickrate*.
 2)  Réception des données du serveur, parsing et application du comportement correspond au message reçu.
-3)  Mise à jours des entités du client (Player, Attack, ...). Cela correspond à la prédiction, ces données seront potentiellement écrasé à la prochaine réception des données du serveur.
-4)  Affichage des entités sur la fenêtre.
-5)  Attente jusqu'a la fin du tick, afin d'avoir *refresh tickrate* ticks par seconde.
+3)  Gestion des entrées claviers de l'utilisateur
+4)  Mise à jours des entités du client (Player, Attack, ...). Cela correspond à la prédiction, ces données seront potentiellement écrasé à la prochaine réception des données du serveur.
+5)  Affichage des entités sur la fenêtre.
+6)  Attente jusqu'a la fin du tick, afin d'avoir *refresh tickrate* ticks par seconde.
 
 
 Le client est implémenté en utilisant principalement les classes de Python.
@@ -161,17 +167,17 @@ Nous allons donc ici faire une présentation rapide de ces éléments et de leur
 - Le fichier `send_serveur.py` contient les différentes fonctions pour envoyer des messages respectant le protocole au serveur.
 
 
-- **Client** (dans `client.py`)
-- **Menu** (dans `menu.py`)
-- **MultiplayerGame** (dans `multiplayer_game.py`)
-- **Arena** (dans `arena.py`)
-- **Player** (dans `player.py`)
-- **Goal** (dans `goal.py`)
-- **Obstacle** (dans `obstacle.py`)
-- **Score** (dans `score.py`)
-- **Logger** (dans `logger.py`)
-- **InputBox** (dans `input_box.py`)
-- **Attack** (dans `attack.py`)
+- **Client** (dans `client.py`) représente la fenêtre d'interface du client avec quelques ses proprités (titres, tailles, ...)
+- **Menu** (dans `menu.py`) représente un écran dans lequelle on peut saisir un pseudo et se connecter à une session en appuyant sur Entrée
+- **MultiplayerGame** (dans `multiplayer_game.py`) correspond à toute la gestion de la communication avec le serveur. On y trouve notamment les méthodes pour gérer tout les comportement par rapport à chaque commande du protocole ainsi que toutes les variables représentant l'état courant du jeu. C'est ici que le boucle infini dont nous avons parlé pluys haut à lieu, dans la méthode `main_loop()`.
+- **Arena** (dans `arena.py`) contient toutes les entités d'une partie et s'occupe de faire le lien entre leurs coordonnées abstraites et les coordonées réelles de la fenêtre pour les dessiner, ainsi que de les mettre à jour.  
+- **Player** (dans `player.py`) représente toutes les informations sur l'état d'un joueur de la partie ainsi que les comportements des input utilisateurs.
+- **Goal** (dans `goal.py`) représente un objectif de la partie et permet de verifier s'il est collectable à partir de coordonnées données.
+- **Obstacle** (dans `obstacle.py`) représente un obstacle de la partir et permet de verifier si un Player est en collision avec.
+- **Attack** (dans `attack.py`) représente un tir dans la partie avec sa position et son vecteur vitesse.
+- **Score** (dans `score.py`) permet d'afficher des lignes de textes dans la fenêtre indiquant le score de chaque joueurs.
+- **Logger** (dans `logger.py`) permet d'afficher des lignes de textes dans la fenêtre représentant les messages du chat ainsi que les informations intéressantes pour un joueur envoyées par le serveur.
+- **InputBox** (dans `input_box.py`) représente un boite de dialogue permettant d'écrire du texte et de réaliser une action donnée lors de l'appui sur la touche Entrée.
 
 
 ## Serveur
@@ -196,16 +202,16 @@ Package `constants` :
 - **Constants** : De même que pour le client, contient toutes les constantes utile dans l'application avec notamment le *PORT* sur lequel écouter.
 
 Package `server` :
-- **Serveur** : 
-- **Connexion** : 
-- **Session** : 
-- **ProtocolManager** : 
+- **Serveur** : Attend les connexions des clients et crée envoi un nouveau thread Connexion dans un pool de threads lorsqu'un client se connecte. Il lie alors cette Connexion à un Session.
+- **Connexion** : Gère toute les communications avec un client et modifie la Session à laquelle il est lié en fonction des communications.
+- **Session** : Représente l'état de la partie actuelle. Elle est partagée entre toutes les Connexion et gère tout les accès concurrents de manière "safe".
+- **ProtocolManager** : Classe contenant des méthodes statiques permettant de créer des String respectant le protocole en fonction des données brutes de la Session
 
 Package `game_elements` :
-- **Player** : 
-- **Objectif** : 
-- **Obstacle** : 
-- **Attack** : 
+- **Player** : Représente toute les données d'un joueur de la partie ainsi que différentes méthodes pour intéragir avec (notamment les collisions).
+- **Objectif** : Représente l'état d'un objectif et de vérfier s'il est collectable par un joueur donnée.
+- **Obstacle** : Représente un obstacle et permet de vérifier s'il est en collision avec un autre élément.
+- **Attack** : Représente un tir et avec son état courant et permet d'intéragir avec un joueur si jamais il entre en collision.
 
 # Point pertinants
 
@@ -329,5 +335,3 @@ try {
 }catch (IOException e){System.err.println(e.getMessage());System.exit(1);}
 
 ```
-
-

@@ -12,7 +12,7 @@ import game_elements.Obstacle;
 import game_elements.Player;
 
 /**
- * Classe permettant de créer des String respectant le protocoles à partir des données brutes du jeux
+ * Classe permettant de créer des String respectant le protocoles à partir des données brutes du jeu
  */
 public class ProtocolManager{
     
