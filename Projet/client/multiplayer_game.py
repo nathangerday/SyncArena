@@ -28,7 +28,7 @@ class MultiplayerGame:
         self.socket = None
         
         self.arena = Arena(self.client.window_width, self.client.window_height) # Creation de l'arene
-        self.main_player = Player("evilFighter.png", self.username, to_display=True)
+        self.main_player = Player("player.png", self.username, to_display=True)
 
         self.last_newcom = 0
 
@@ -139,7 +139,7 @@ class MultiplayerGame:
                 if(name in self.arena.players):
                     self.arena.players[name].score = int(score)
                 else:
-                    new_player = Player("spaceship_sprite.png", name)
+                    new_player = Player("enemy.png", name)
                     new_player.score = int(score)
                     self.arena.players[name] = new_player
             
@@ -155,7 +155,7 @@ class MultiplayerGame:
     def apply_command_newplayer(self, cmd):
         user = cmd[1]
         self.logger.add_message(user + " joins the game")
-        self.arena.players[user] = Player("spaceship_sprite.png", user)
+        self.arena.players[user] = Player("enemy.png", user)
 
     def apply_command_playerleft(self, cmd):
         user = cmd[1]
@@ -178,7 +178,7 @@ class MultiplayerGame:
                 self.arena.players[name].moveTo(pos[0], pos[1])
                 self.arena.players[name].to_display = True
             else:
-                self.arena.players[name] = Player("spaceship_sprite.png", name, pos, True)
+                self.arena.players[name] = Player("enemy.png", name, pos, True)
         goals_coord = coord.split("|")
         goalx, goaly = parse_coord(goals_coord[0])
         if(len(goals_coord) == 2):
@@ -243,7 +243,6 @@ class MultiplayerGame:
     def apply_command_newobj(self, cmd):
         coord = cmd[1]
         scores = cmd[2]
-        self.logger.add_message("Setting a new objectif...")
         for s in scores.split("|"):
             [name, score] = s.split(":")
             self.arena.players[name].score = int(score)

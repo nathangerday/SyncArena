@@ -42,6 +42,8 @@ _Date de rendu : 14/04/2019_
 
 # Manuel
 
+*Ce manuel a été testé sur Ubuntu ainsi que sur Debian*
+
 ## Installation
 
 ### Serveur

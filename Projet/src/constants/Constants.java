@@ -11,8 +11,8 @@ public final class Constants{
     public static final int NB_OBSTACLES = 15;
 
     //  ======= MUST BE IDENTICAL TO SERVER =======
-    public static final int REFRESH_TICKRATE = 30;
-    public static final int SERVER_TICKRATE = 10;
+    public static final int REFRESH_TICKRATE = 45;
+    public static final int SERVER_TICKRATE = 17;
     public static final double MAX_THRUST = 0.02;
     public static final double TURNIT = 0.12;
     public static final double THRUSTIT = 0.004;
