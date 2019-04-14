@@ -68,7 +68,7 @@ apt-get install python3-pip
 
 Installation de Pygame:  
 ```sh
-python3 -m pip install -U pygame --user
+python3 -m pip install pygame
 ```
 
 ## Utilisation

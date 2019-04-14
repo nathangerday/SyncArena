@@ -1,6 +1,5 @@
 package server;
 
-// import java.text.DecimalFormat;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -16,9 +15,6 @@ import game_elements.Player;
  */
 public class ProtocolManager{
     
-    
-    // private static DecimalFormat sixdecimals = new DecimalFormat("#.######"); // Permet de limiter le nombre de decimal pour les double
-
     private ProtocolManager(){}
 
     public static String createObjectivesString(String phase, Objectif objectif, List<Objectif> race_objectives, Player p) {
@@ -40,9 +36,9 @@ public class ProtocolManager{
         int i = players.size();
         for (Player p : players.values()) {
             i--;
-            // Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-            // Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-            coords += p.getUsername() + ":X" + p.getX() + "Y" + p.getY();
+            String xformat = doubleToString(p.getX());
+            String yformat = doubleToString(p.getY());
+            coords += p.getUsername() + ":X" + xformat + "Y" + yformat;
             if (i > 0) {
                 coords += "|";
             }
@@ -55,12 +51,12 @@ public class ProtocolManager{
         int i = players.size();
         for(Player p : players.values()){
             i--;
-            // Double xformat = Double.valueOf(sixdecimals.format(p.getX()));
-            // Double yformat = Double.valueOf(sixdecimals.format(p.getY()));
-            // Double vectorxformat = Double.valueOf(sixdecimals.format(p.getVectorX()));
-            // Double vectoryformat = Double.valueOf(sixdecimals.format(p.getVectorY()));
-            // Double directionformat = Double.valueOf(sixdecimals.format(p.getDirection()));
-            vcoords += p.getUsername() + ":X" + p.getX() + "Y" + p.getX() + "VX" + p.getVectorX() + "VY" + p.getVectorY() + "T" + p.getDirection();
+            String xformat = doubleToString(p.getX());
+            String yformat = doubleToString(p.getY());
+            String vectorxformat =  doubleToString(p.getVectorX());
+            String vectoryformat =  doubleToString(p.getVectorY());
+            String directionformat =  doubleToString(p.getDirection());
+            vcoords += p.getUsername() + ":X" + xformat + "Y" + yformat + "VX" + vectorxformat + "VY" + vectoryformat + "T" + directionformat;
     
             if (i > 0) {
                 vcoords += "|";
@@ -109,6 +105,10 @@ public class ProtocolManager{
             }
         }
         return scores;
+    }
+
+    private static String doubleToString(double d){
+        return String.format("%.5f", d);
     }
 
 }

@@ -334,5 +334,6 @@ def parse_coord(coord):
     elif(len(vals) == 4):
         vector = float(vals[1]), float(vals[2])
         angle = float(vals[3])
+
         return ((float(pos[1]), float(pos[2])), vector, angle)
 
