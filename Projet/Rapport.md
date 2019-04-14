@@ -16,8 +16,8 @@
     - [Comment jouer ?](#comment-jouer)
 - [Description du projet](#description-du-projet)
   - [Travail réalisé / Extensions](#travail-r%C3%A9alis%C3%A9--extensions)
-  - [Serveur](#serveur-1)
   - [Client](#client-1)
+  - [Serveur](#serveur-1)
 - [Point pertinants](#point-pertinants)
   - [Synchronisation](#synchronisation)
   - [Gestion de la session courante](#gestion-de-la-session-courante)
@@ -135,10 +135,70 @@ Tout est fonctionnel et, bien que nous n'ayons pas testé nous-même, le serveur
 
 Le seul point sur lequel nous avons dû faire un choix et qui pourra donc créer un problème de compatibilité est au niveau de la gestion des coordonnées. Nous avons fait le choix d'avoir des données "abstraites" côté serveur et c'est ensuite au client de les convertir en coordonnées réelles en fonction de la taille de sa fenêtre. Côté serveur, nous avons des coordonnées entre -1 et 1, avec le point (0,0) au centre, le point (-1, -1) en haut à gauche et le point (1, 1) en bas à droite. Tout le protocole utilise donc ces données abstraites. Cela nous permettrait en théorie d'avoir des tailles de fenêtre variable pour chaque client et de toujours garder des coordonnées cohérentes.
 
-## Serveur
-
 ## Client
 
+Nous allons tout d'abord décrire le fonctionnement général du client, sans rentrer dans les détails.
+
+Le client initialise une fenêtre graphique avec un menu permettant de se connecter au serveur avec le protocole *CONNECT*. Une fois la connexion réussie, on lance la fenêtre correspondant à un session en jeu. Cette fenêtre est composé d'une boucle infini réalisant les opérations suivantes : 
+1)  Envoi des données au serveur en fonction de l'état actuel du jeu et des inputs. Lorsqu'on est en jeu, pour envoyer une fois tout les *tickrate server*, on utilise une variable indiquant quand le dernier envoi a été fait, et on compare cette variable au *tickrate server* afin de savoir si on doit envoyer ou non. Cela fonctionne car on sait que le *refresh tickrate* du client est bien supérieur au *server tickrate*.
+2)  Réception des données du serveur, parsing et application du comportement correspond au message reçu.
+3)  Mise à jours des entités du client (Player, Attack, ...). Cela correspond à la prédiction, ces données seront potentiellement écrasé à la prochaine réception des données du serveur.
+4)  Affichage des entités sur la fenêtre.
+5)  Attente jusqu'a la fin du tick, afin d'avoir *refresh tickrate* ticks par seconde.
+
+
+Le client est implémenté en utilisant principalement les classes de Python.
+Nous allons donc ici faire une présentation rapide de ces éléments et de leur rôle.
+
+- Le fichier `const.py` contient toutes les constantes qui permettent de définir le comportement du jeu côté client. Il y a notamment les valeurs *PORT* et *HOST* qu'il peut être utile de changer pour connecter à un autre serveur.
+- Le fichier `send_serveur.py` contient les différentes fonctions pour envoyer des messages respectant le protocole au serveur.
+
+
+- **Client** (dans `client.py`)
+- **Menu** (dans `menu.py`)
+- **MultiplayerGame** (dans `multiplayer_game.py`)
+- **Arena** (dans `arena.py`)
+- **Player** (dans `player.py`)
+- **Goal** (dans `goal.py`)
+- **Obstacle** (dans `obstacle.py`)
+- **Score** (dans `score.py`)
+- **Logger** (dans `logger.py`)
+- **InputBox** (dans `input_box.py`)
+- **Attack** (dans `attack.py`)
+
+
+## Serveur
+
+De même que pour le client, nous allons décrire le fonctionnement général du serveur avant de rentrer dans les détails.
+
+Au lancement du serveur, un premier Thread se lance sur la classe Serveur. Ce thread va faire une boucle infini sur un mécanisme d'écoute de connexion de client. A chaque fois qu'un client se connecte au serveur, il va créer un nouveau Thread Connexion pour ce client qui sera lié à une Session. Ce Thread Connexion sera chargé de gérer toute la communication avec ce client précis ainsi que de modifier la Session, qui correpsond à l'ensemble des ressources partagées entre tout les clients, en fonction des messages envoyés par le client. Le comportement de la boucle Connexion pour un client donné est donc:  
+
+1) Recevoir le message respectant le protocole du client.
+2) Appliquer les modifications dans la Session partagée correspondant à ce message.
+3) Si nécéssaire, envoyer un message réponse au client connecté et potentiellement à tout les autres clients de la session.
+
+Pour faire cela, nous avons implémenté des méthodes dans Session, permettant d'appliquer chaque commande du protocole et qui se chargent de gérer les synchronisations. Ces méthodes s'occupent égalements de prévenir les Connexion liées de chaque client pour lequel il faut envoyer une réponse.
+
+Enfin, lorsque la phase est en mode jeu, il y a également un dernier Thread qui s'occupe de lancer régulièrement les ticks serveurs afin de mettre à jour sur le serveur et d'envoyer le protocole *TICK* à tous les clients connectés.
+
+Le code du serveur est organisé en 3 parties distinctes : les constantes (package `constants`), les éléments de représentaiton de l'était du jeu (package `game_elements`) et les élements de gestion de la concurrence et du protocole (package `server`).
+
+Nous allons ici expliquer un peu plus en détails le rôle et fonctionnement de chaque classe.
+
+Package `constants` :
+- **Constants**
+
+Package `server` :
+- **Serveur**
+- **Connexion**
+- **Session**
+- **ProtocolManager**
+
+Package `game_elements` :
+- **Player**
+- **Objectif**
+- **Obstacle**
+- **Attack**
 
 # Point pertinants
 
@@ -180,13 +240,4 @@ public Connexion(Socket client_soc, Session session){
 }
 ```
 
-```python
-try:
-    data = self.socket.recv(8192, socket.MSG_DONTWAIT)
-except BlockingIOError:
-    return
-
-commands = data.decode().split("\n")
-commands = [cmd.split("/") for cmd in commands]
-```
 
