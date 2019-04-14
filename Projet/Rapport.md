@@ -48,7 +48,7 @@ ant compile
 ### Client
 
 Nous utilisons Python 3 dans la version 3.6.7.  
-Les versions plus récentés fonctionnent également.
+Les versions plus récentes fonctionnent également.
 Les versions plus anciennes de Python 3 devrait fonctionner pour la majorité d'entres elles bien que nous ne les ayons pas testé.
 
 Il faut également installer la librairie Pygame. Le plus simple est de passer par l'installeur de module pour Python qui s'appelle Pip.
@@ -100,7 +100,9 @@ Si on est le premier client, on arrive alors dans une phase d'attente pendant la
 
 Une fois la partie commencée, on arrive sur un écran avec des obstacles (les ronds blancs), un objectif (le rond jaune), le vaisseau du joueur (en gris) et les vaisseaux des autres joueurs (en rouge) s'il y en a.
 
-Le but, par défaut, est d'être le premier à récupérer 3 objectifs. Dans ce mode, les objectifs sont partagés par tout les joueurs.
+Le but, par défaut, est d'être le premier à récupérer 3 objectifs. Dans ce mode, les objectifs sont partagés par tout les joueurs. Une fois la partie gagnée par un joueur, on retourne en phase d'attente avec tout les joueurs de la session.
+
+On peut rejoindre à tout moment une session en cours ou en attente en connectant un nouveau client.
 
 Les actions possibles sont:
 - Tourner dans le sens antihoraire => Touche **Q** ou **Flèche gauche**
@@ -134,6 +136,11 @@ Nous avons réalisé 3 extensions en plus des parties A, B et C du sujet.
 Tout est fonctionnel et, bien que nous n'ayons pas testé nous-même, le serveur et le client respectent le protocole et devrait être donc compatible avec d'autres. Lors de l'ajout d'extensions, nous avons veillé à conserver la compatibilié avec un client / serveur n'incluant pas ces extensions.
 
 Le seul point sur lequel nous avons dû faire un choix et qui pourra donc créer un problème de compatibilité est au niveau de la gestion des coordonnées. Nous avons fait le choix d'avoir des données "abstraites" côté serveur et c'est ensuite au client de les convertir en coordonnées réelles en fonction de la taille de sa fenêtre. Côté serveur, nous avons des coordonnées entre -1 et 1, avec le point (0,0) au centre, le point (-1, -1) en haut à gauche et le point (1, 1) en bas à droite. Tout le protocole utilise donc ces données abstraites. Cela nous permettrait en théorie d'avoir des tailles de fenêtre variable pour chaque client et de toujours garder des coordonnées cohérentes.
+
+Les extensions réalisées sont :
+- Un chat tel que décrit dans le sujet avec affichage des messages directement dans la fenêtre de jeu.
+- La possibilité de tirer sur les autres joueurs pour les immobiliser
+- La possibilité de lancer une partie en mode "course" en écrivant `/race` pendant la phase d'attente. A la différence de la course décrite dans le sujet, on ne voit pas tout les objectifs mais seulement celui actuel ainsi que le suivant s'il y en a un.
 
 ## Client
 
@@ -186,58 +193,141 @@ Le code du serveur est organisé en 3 parties distinctes : les constantes (packa
 Nous allons ici expliquer un peu plus en détails le rôle et fonctionnement de chaque classe.
 
 Package `constants` :
-- **Constants**
+- **Constants** : De même que pour le client, contient toutes les constantes utile dans l'application avec notamment le *PORT* sur lequel écouter.
 
 Package `server` :
-- **Serveur**
-- **Connexion**
-- **Session**
-- **ProtocolManager**
+- **Serveur** : 
+- **Connexion** : 
+- **Session** : 
+- **ProtocolManager** : 
 
 Package `game_elements` :
-- **Player**
-- **Objectif**
-- **Obstacle**
-- **Attack**
+- **Player** : 
+- **Objectif** : 
+- **Obstacle** : 
+- **Attack** : 
 
 # Point pertinants
 
 ## Synchronisation
 
-TODO Object servant de lock
-TODO Ordre toujours respecté dans les lock
+Sur le serveur, toute la partie donnée partagée est représentée par la classe Session. C'est sur cette classe que chaque client va pouvoir avoir un impact sur l'état du jeu. Il faut donc bien évidemment géré les accès concurrents à tout moment dans le programme.
+
+Pour cela, nous avons décidé d'utilise mot clé `synchronized` de Java qui répond parfaitement à nos attentes.
+
+Cependant, nous avons fait le choix de ne pas rendre l'ensemble des méthodes de la classe Session `synchronized` qui verrouillerait sur l'ensemble de l'instance de Session et serait donc un peu trop "fort" pour nous, il y aurait une perte d'efficacité.
+
+Nous avons donc fait le choix de créer des Objects java pour chaque éléments qui risquent d'être modifiés avec des accès concurrents. Nous ne pouvions pas synchroniser directement sur les variables étant données que si nous changions l'instance, par exemple en changeant l'objectif, nous perdrions le verrou et des accès non controlés pourraient alors avoir lieux.
+
+```Java
+private final Object userLock = new Object(); // Verrou sur la liste des instances de Player et des Connexions actuellement dans la Session
+private final Object phaseLock = new Object(); // Verrou sur la phase actuelle du jeu
+private final Object objectifLock = new Object(); // Verrou sur l'objectif courant (ou la liste d'objectifs en mode course)
+private final Object attacksLock = new Object(); // Verrou sur la liste des attaques encore présentes
+```
+ 
+ Nous n'avons pas créé de verrou pour la liste d'obstacle car elle est créée une unique fois puis ne sera jamais modifiée jusqu'à la fin de la partie.
+
+ Afin de garantir qu'il n'y ait pas d'interblocage, nous avons également défini que les synchronisations sur plusieurs verrous devaient toujours être effectuées en respectant l'ordre de déclaration des verrous.
+
+ Cette méthode nous permet donc de verrouiller uniquement ce qui est nécéssaire tout en garantissant qu'il ne peut pas y avoir d'interblocage entre les Connexions.
+ 
 
 ## Gestion de la session courante
 
-TODO Thread de lancement après délai + Thread d'appelle de tick
+Un des problèmes que nous avons rencontré est le fait que lorsque le premier client se connecte, il faut que le serveur entre en phase d'attente pendant un certain temps. Cependant, on ne peut pas utiliser `Thread.sleep()` afin d'attendre la durée souhaite, puisque cela bloquerait le thread appelant, en l'occurence la Connexion avec le premier client. Or, on veut que cette connexion continue d'écouter le client et puisse encore lui envoyer des informations, par exemple si un autre joueur se connecte.
+
+A la première connexion il nous font donc lancer un autre thread qui sera chargé uniquement d'appeler la méthode `start()` après un certain temps.
+
+Nous utilisons pour cela une méthode de la classe Executors de Java.
+
+```Java
+private void scheduleStart() {
+    ScheduledExecutorService sch = Executors.newSingleThreadScheduledExecutor();
+    Runnable task = new Runnable() {
+        public void run() {
+            start(); // Demarre la phase de "jeu"
+        }
+    };
+    sch.schedule(task, delayBeforeStart, TimeUnit.SECONDS);
+}
+```
+
+Un problème similaire s'est posé pour avoir des ticks servers à un fréquence régulière de manière indépendante des communications avec les clients. Nous créons donc un thread chargé d'appeler tick tant que la phase est "jeu".
+
+```Java
+private void autoTick() {
+    Runnable task = new Runnable() {
+        public void run() {
+            while (true) {
+                synchronized (phaseLock) {
+                    if (!phase.equals("jeu") && !phase.equals("ingame_race")) { 
+                        // On ne veut pas appeler tick si on est pas en cours de jeu.
+                        return;
+                    }
+                }
+                tick();
+                try {
+                    Thread.sleep(1000 / Constants.SERVER_TICKRATE);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    };
+    new Thread(task).start();
+}
+```
+
 
 ## Tickrates
 
-TODO Scaling + Collision => retour position précedente
+Nous allons ici nous intéresser aux problèmes rencontrés par le fait d'avoir 2 tickrates différents et indépendants pour le client et le serveur.
+
+Le premier problème est au niveau de la mise à jour de la position selon le vecteur. Etant donné que le vecteur de chaque joueur est le même pour le serveur et pour le client, il nous font donc prendre en compte cette différence d'échelle d'un côte ou de l'autre. Nous avons décidé de le gérer sur le serveur, ce qui implique donc que le serveur doit connaître le *REFRESH_TICKRATE* du client.
+
+L'autre principal problème est au niveau des collisions. En effet, lors de la détéction d'une collision nous renvoyons le vaisseau à sa position précédente. Cela est fait côté serveur, mais également côté client afin d'avoir une prédiction précise. Cependant, le *REFRESH_TICKRATE* du client était plus élevé que le *SERVER_TICKRATE*, la position précédente du client est plus proche de l'obstacle que celle du serveur et un décalage entre les 2 se crée alors. Lors du prochain tick, le serveur corrige donc la prédiction du client et cela a pour effet de téléporter légerement le vaisseau du joueur sur l'interface. Ce problème étant cependant quasiment invisible pour un *SERVER_TICKRATE* suffisamment haut, nous avons décider de ne pas complexifier le code pour le gérer.
+
+Nous avons également réfléchi à l'extension proposée de faire les calculs côté client et de les vérifier côté serveur, ce qui aurait permis, entre autre, de régler le problème précédent. Cependant cela créait un autre problème : si le client envoi ses coordonnées à un instant t0 et que le serveur reçoit les coordonnées, les valide, et les renvoit à l'instant t1, le vaiseau sur le client à alors bougé depuis l'instant t0 et donc cela le téléporte en arrière. L'extension censé rendre le jeu plus fluide a alors l'effet totalement opposé. Etant donné les tickrates différents et indépendants, il est quasiment impossible d'essayer de prédire pour le serveur où se trouvera le client à l'instant t1. La solution est donc que si jamais le serveur valide les coordonnées envoyées par le client, il ne doit pas réenvoyer la coordonnée à l'instant t1. Ainsi le client se déplace sans aucune intervention du serveur tant que les coordonnées sont validées. Mais cela nécéssite de totalement rompre la compatibilité avec les clients n'implémentant pas cette extension, ainsi que de complexifié le code d'envoi de tick aux clients puisqu'une position d'un client validée ne doit pas lui etre réenvoyé, mais elle doit tout de même être envoyée à tout les autres clients. Nous avons donc décider de ne pas implémenter cette extension.
+
 
 ## Compatibilité Protocoles avec extensions
 
-TODO NEWCOM2 / TICK2
+Tout au long de l'implémentation des extensions, nous avons fait en sorte de conserver à tout moment la compatibilité avec les projets n'implémentant pas ces extensions.
+
+Cela a nécéssité de :
+- Garder une rétro-compatibilité avec le protocole du sujet.
+- Ne pas envoyer de messages correspondant aux protocoles ajoutés par les extensions sans action de la part utilisateur (Par exemple, on enverra donc jamais d'informations liées aux tirs tant que le joueur n'a pas tirée une fois)
+
+Les commandes ajoutées aux protocoles sont :
+
+- Le protocole du chat dans le sujet
+- (C -> S) `NEWCOM2/comms+S1/` => Envoi les informations de NEWCOM classique et ajoute le fait qu'on a tirer une fois. (Nous avons fait en sorte de ne pouvoir tirer qu'une fois par tick).
+- (C -> S) `RACE/` => Envoi au serveur une requête pour que le prochaine partie soit une course et non une partie standard.
+- (S -> C) `TICK2/vcoords/vcoords/` => Envoi les informations sur l'ensemble des joueurs et également l'ensemble des tirs présents dans la partie avec leur position, vecteur et direction.
+- (S -> C) `NEWOBJ/ocoords/scores/` => Si on est en partie standard, le ocoords contient la coordonée de l'unique objectif et est donc identique au format "coord" par défaut. En mode course, il contient l'objectif courant ainsi que l'objectif suivant.
+
+
+
 
 ## Pool de threads
 
-TODO Executors
+Le serveur, au moment d'accepté les connexions client et de créer le thread Connexion pour le client en question passe par une pool de thread de la classe Executors de Java. Cela a peu d'influence sur l'ensemble du projet mais apporte 2 avantages non négligeables :
+- Cela permet de limiter simplement le nombre de client à tout moment et donc de garantir une certaine sureté sur le serveur qui ne pourra pas être surcharger.
+- La gestion de la pool de thread faite par Executor permet de pas recréer des threads à chaques nouvelles connexions, ce qui limite le coût en performance des connexions.
 
 
-
-```java
-public Connexion(Socket client_soc, Session session){
-    this.client = client_soc;
-    this.session = session;
-    try {
-        in = new BufferedReader(new InputStreamReader(client.getInputStream()));
-        out = new PrintStream(client.getOutputStream()); 
-    }catch (IOException e){
-        try {client.close();} catch (IOException e1){}
-        System.err.println(e.getMessage());
-        return;
+```Java
+ExecutorService threadPool = Executors.newFixedThreadPool(20);
+try {
+    while (true){
+        Socket client = ecoute.accept();
+        Connexion c = new Connexion (client, currentSession);
+        threadPool.submit(c);
     }
-}
+    
+}catch (IOException e){System.err.println(e.getMessage());System.exit(1);}
+
 ```
 
 
