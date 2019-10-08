@@ -1,2 +1,0 @@
-class FifoEmptyException extends Exception {
-}
